@@ -9,7 +9,7 @@ import { useDispatch } from "react-redux";
 import {loginUser, passwordReset} from "@/components/redux/actions/authActions";
 import { setUser } from "@/components/redux/reducers/authReducer";
 import { useNavigate } from "react-router-dom";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.tsx";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
 import { MESSAGES } from "@/constants/messages";
 
 export default function LoginPage({ className, ...props }: React.ComponentProps<"div">) {

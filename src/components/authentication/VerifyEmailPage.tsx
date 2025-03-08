@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import { verifyEmail } from "@/components/redux/actions/authActions";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.tsx";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
 import {MESSAGES} from "@/constants/messages.ts";
 
 const VerifyEmailPage = () => {
