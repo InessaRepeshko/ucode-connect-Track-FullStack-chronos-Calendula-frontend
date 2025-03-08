@@ -12,13 +12,7 @@ import { useNavigate } from "react-router-dom";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.ts";
 import {MESSAGES} from "@/constants/messages.ts";
 
-export default function RegisterPage({
-                                         className,
-                                         ...props
-                                     }: React.ComponentProps<"div">) {
-
-
-
+export default function RegisterPage({className, ...props}: React.ComponentProps<"div">) {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({ fullName: "", email: "", country: "", password: "", password_confirm: "" });
@@ -111,8 +105,6 @@ export default function RegisterPage({
                                         </Select>
                                     </div>
 
-
-                                    {/* Поле пароля с возможностью скрывать и показывать */}
                                     <div className="relative flex items-center gap-2">
                                         <div className="absolute left-2">
                                             <LockKeyhole />
@@ -138,14 +130,13 @@ export default function RegisterPage({
                                             )}
                                         </button>
                                     </div>
-                                    {/* Поле подтверждения пароля с возможностью скрывать и показывать */}
                                     <div className="relative flex items-center gap-2">
                                         <div className="absolute left-2 ">
                                             <LockKeyhole />
                                         </div>
                                         <Input
                                             id="password_confirm"
-                                            type={showConfirmPassword ? "text" : "password"} // Управляем типом через состояние
+                                            type={showConfirmPassword ? "text" : "password"}
                                             placeholder="Confirm Password"
                                             className="pl-10"
                                             required

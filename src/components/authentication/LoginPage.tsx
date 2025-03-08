@@ -15,9 +15,8 @@ import { MESSAGES } from "@/constants/messages";
 export default function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
     const [showPassword, setShowPassword] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
-    const [formData, setFormData] = useState({ email: "", password: "" }); // Состояние формы
+    const [formData, setFormData] = useState({ email: "", password: "" });
     const [resetEmail, setResetEmail] = useState("");
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -31,7 +30,6 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
         e.preventDefault();
 
         const result = await loginUser(formData, dispatch);
-
         if (result.authToken && result.user) {
             dispatch(setUser({ authToken: result.authToken, user: result.user }));
             showSuccessToast(MESSAGES.AUTH.LOGIN_SUCCESS);
@@ -53,55 +51,6 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
             showErrorToasts(result.errors || MESSAGES.AUTH.PASSWORD_RESET_FAILED);
         }
     };
-
-    // const handleSubmit = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //
-    //     const result = await loginUser(formData, dispatch);
-    //
-    //     if (result.authToken) {
-    //         dispatch(setUser(result)); // Записываем пользователя в Redux
-    //         toast.success("Successful Login", {
-    //             style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-    //         });
-    //         navigate("/calendar"); // Переход на главную
-    //     } else {
-    //         if (Array.isArray(result.errors)) {
-    //             result.errors.forEach((err) => {
-    //                 toast.error(err.msg, {
-    //                     style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-    //                 });
-    //             });
-    //         } else {
-    //             toast.error("Login failed"); // Общая ошибка
-    //         }
-    //     }
-    // };
-    //
-    // const handleResetPassword = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //
-    //     const result = await passwordReset(resetEmail);
-    //
-    //     if (result.success) {
-    //         toast.success("Password reset link sent to your email.", {
-    //             style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-    //         });
-    //         setResetEmail("");
-    //     } else {
-    //         if (Array.isArray(result.errors)) {
-    //             result.errors.forEach((err) => {
-    //                 toast.error(err.msg, {
-    //                     style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-    //                 });
-    //             });
-    //         } else {
-    //             toast.error("Password reset link has not been sent.", {
-    //                 style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-    //             });
-    //         }
-    //     }
-    // };
 
     return (
         <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">

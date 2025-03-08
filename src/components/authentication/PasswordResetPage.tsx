@@ -12,9 +12,8 @@ import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotific
 import {MESSAGES} from "@/constants/messages.ts";
 
 export default function PasswordResetPage({ className, ...props }: React.ComponentProps<"div">) {
-    const { confirm_token } = useParams<{ confirm_token: string }>(); // Получаем токен из URL
+    const { confirm_token } = useParams<{ confirm_token: string }>();
     const navigate = useNavigate();
-
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
@@ -63,7 +62,6 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                                             <p className="text-muted-foreground">Enter your new password</p>
                                         </div>
 
-                                        {/* Поле нового пароля */}
                                         <div className="relative flex items-center gap-2">
                                             <div className="absolute left-2">
                                                 <LockKeyhole />
@@ -86,7 +84,6 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                                             </button>
                                         </div>
 
-                                        {/* Поле подтверждения пароля */}
                                         <div className="relative flex items-center gap-2">
                                             <div className="absolute left-2">
                                                 <LockKeyhole />

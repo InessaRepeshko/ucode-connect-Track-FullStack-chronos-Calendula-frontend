@@ -12,7 +12,6 @@ interface AuthState {
     registrationErrors: { path: string; msg: string }[];
 }
 
-// Начальное состояние
 const initialState: AuthState = {
     authToken: localStorage.getItem("token"),
     user: null,

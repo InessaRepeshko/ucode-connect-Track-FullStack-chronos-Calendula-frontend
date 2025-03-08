@@ -1,17 +1,3 @@
-// import { AppSidebar } from "@/components/app-sidebar"
-// import {
-//   Breadcrumb,
-//   BreadcrumbItem,
-//   BreadcrumbList,
-//   BreadcrumbPage,
-// } from "@/components/ui/breadcrumb"
-// import { Separator } from "@/components/ui/separator"
-// import {
-//   SidebarInset,
-//   SidebarProvider,
-//   SidebarTrigger,
-// } from "@/components/ui/sidebar"
-// import CustomCalendar from "@/components/CustomCalendar.tsx";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Toaster } from 'sonner';
 import LoginPage from "@/components/authentication/LoginPage.tsx";
