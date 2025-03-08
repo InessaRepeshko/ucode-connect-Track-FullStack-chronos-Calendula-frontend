@@ -9,7 +9,8 @@ import { useState} from "react";
 import { useDispatch } from "react-redux";
 import { registerUser } from "@/components/redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.ts";
+import {MESSAGES} from "@/constants/messages.ts";
 
 export default function RegisterPage({
                                          className,
@@ -35,22 +36,11 @@ export default function RegisterPage({
         e.preventDefault();
 
         const result = await registerUser(formData, dispatch);
-
         if (result.success) {
-            toast.success("Registration successful. Please verify your email!", {
-                style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-            });
+            showSuccessToast(MESSAGES.AUTH.REGISTRATION_SUCCESS);
             navigate("/login");
         } else {
-            if (Array.isArray(result.errors)) {
-                result.errors.forEach((err) => {
-                    toast.error(err.msg, {
-                        style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-                    });
-                });
-            } else {
-                toast.error("Registration failed");
-            }
+            showErrorToasts(result.errors || MESSAGES.AUTH.REGISTRATION_FAILED);
         }
     };
 

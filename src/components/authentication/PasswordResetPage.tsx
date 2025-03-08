@@ -8,6 +8,8 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { confirmPasswordReset } from "@/components/redux/actions/authActions";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.ts";
+import {MESSAGES} from "@/constants/messages.ts";
 
 export default function PasswordResetPage({ className, ...props }: React.ComponentProps<"div">) {
     const { confirm_token } = useParams<{ confirm_token: string }>(); // Получаем токен из URL
@@ -26,29 +28,17 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!confirm_token) {
             toast.error("Invalid token.");
             return;
         }
 
         const result = await confirmPasswordReset(confirm_token, formData.password, formData.confirmPassword);
-
         if (result.success) {
-            toast.success("Password has been changed.");
+            showSuccessToast(MESSAGES.AUTH.PASSWORD_CHANGED_SUCCESS);
             navigate("/login");
         } else {
-            if (Array.isArray(result.errors)) {
-                result.errors.forEach((err) => {
-                    toast.error(err.msg, {
-                        style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-                    });
-                });
-            } else {
-                toast.error("Failed to reset password.", {
-                    style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-                });
-            }
+            showErrorToasts(result.errors || MESSAGES.AUTH.PASSWORD_CHANGED_FAILED);
         }
     };
 

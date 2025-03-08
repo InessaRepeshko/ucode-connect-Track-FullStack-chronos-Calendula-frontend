@@ -20,7 +20,7 @@ export const loginUser = async (credentials: { email: string; password: string }
         return {
             authToken: null,
             user: null,
-            errors: axiosError.response?.data?.validationErrors || { general: "Login failed" },
+            errors: axiosError.response?.data?.validationErrors,
         };
     }
 };
@@ -35,7 +35,7 @@ export const registerUser = async (credentials: { fullName: string; email: strin
         dispatch(setRegistrationErrors(axiosError.response?.data?.validationErrors || []));
         return {
             success: false,
-            errors: axiosError.response?.data?.validationErrors || { general: "Registration failed" },
+            errors: axiosError.response?.data?.validationErrors,
         };
     }
 };
@@ -48,7 +48,7 @@ export const verifyEmail = async (confirmToken: string) => {
         const axiosError = error as AxiosError<ErrorResponse>;
         return {
             success: false,
-            errors: axiosError.response?.data?.message || "Email verification failed",
+            errors: axiosError.response?.data?.message,
         };
     }
 };
@@ -61,23 +61,10 @@ export const passwordReset = async (email: string) => {
         const axiosError = error as AxiosError<ErrorResponse>;
         return {
             success: false,
-            errors: axiosError.response?.data?.validationErrors || "Password reset failed",
+            errors: axiosError.response?.data?.validationErrors,
         };
     }
 };
-
-// export const confirmPasswordReset = async (confirmToken: string) => {
-//     try {
-//         await axios.get(`http://localhost:8080/api/auth/password-reset/${confirmToken}`);
-//         return { success: true, errors: {}  };
-//     } catch (error) {
-//         const axiosError = error as AxiosError<ErrorResponse>;
-//         return {
-//             success: false,
-//             errors: axiosError.response?.data?.message || "Email verification failed",
-//         };
-//     }
-// };
 
 export const confirmPasswordReset = async (confirmToken: string, password: string, password_confirm: string) => {
     try {
@@ -87,7 +74,7 @@ export const confirmPasswordReset = async (confirmToken: string, password: strin
         const axiosError = error as AxiosError<ErrorResponse>;
         return {
             success: false,
-            errors: axiosError.response?.data?.validationErrors || [{ msg: "Password reset confirmation failed" }],
+            errors: axiosError.response?.data?.validationErrors,
         };
     }
 };

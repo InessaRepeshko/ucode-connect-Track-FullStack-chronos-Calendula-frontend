@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import { verifyEmail } from "@/components/redux/actions/authActions";
-import { toast } from "sonner";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.ts";
+import {MESSAGES} from "@/constants/messages.ts";
 
 const VerifyEmailPage = () => {
     const navigate = useNavigate();
@@ -12,17 +13,16 @@ const VerifyEmailPage = () => {
             const result = await verifyEmail(confirm_token || "");
             navigate("/login");
             if (result.success) {
-                toast.success("Account successfully verified!", {
-                    style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-                });
+                showSuccessToast(MESSAGES.AUTH.VERIFICATION_SUCCESS);
             } else {
-                toast.error("Account has not been verified!", {
-                    style: { padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center", width: "fit-content" },
-                });
+                showErrorToasts(result.errors || MESSAGES.AUTH.VERIFICATION_FAILED);
             }
         };
         verify();
     }, [confirm_token, navigate]);
+    return (
+        <div></div>
+    );
 };
 
 export default VerifyEmailPage;
