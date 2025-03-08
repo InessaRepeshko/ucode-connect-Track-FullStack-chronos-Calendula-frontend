@@ -9,7 +9,7 @@ import { useState} from "react";
 import { useDispatch } from "react-redux";
 import { registerUser } from "@/components/redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.ts";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.tsx";
 import {MESSAGES} from "@/constants/messages.ts";
 
 export default function RegisterPage({className, ...props}: React.ComponentProps<"div">) {

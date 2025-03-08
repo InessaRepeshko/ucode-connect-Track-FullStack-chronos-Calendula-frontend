@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { confirmPasswordReset } from "@/components/redux/actions/authActions";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.ts";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/toastNotifications.tsx";
 import {MESSAGES} from "@/constants/messages.ts";
 
 export default function PasswordResetPage({ className, ...props }: React.ComponentProps<"div">) {
