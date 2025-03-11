@@ -9,7 +9,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { confirmPasswordReset } from "@/components/redux/actions/authActions";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
-import {MESSAGES} from "@/constants/messages.ts";
+import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
+import {UiMessages} from "@/constants/uiMessages.ts";
 
 export default function PasswordResetPage({ className, ...props }: React.ComponentProps<"div">) {
     const { confirm_token } = useParams<{ confirm_token: string }>();
@@ -34,10 +35,10 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
 
         const result = await confirmPasswordReset(confirm_token, formData.password, formData.confirmPassword);
         if (result.success) {
-            showSuccessToast(MESSAGES.AUTH.PASSWORD_CHANGED_SUCCESS);
+            showSuccessToast(ToastStatusMessages.AUTH.PASSWORD_CHANGED_SUCCESS);
             navigate("/login");
         } else {
-            showErrorToasts(result.errors || MESSAGES.AUTH.PASSWORD_CHANGED_FAILED);
+            showErrorToasts(result.errors || ToastStatusMessages.AUTH.PASSWORD_CHANGED_FAILED);
         }
     };
 
@@ -58,8 +59,8 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                                 <form className="p-6 md:p-8 w-full" onSubmit={handleSubmit}>
                                     <div className="flex flex-col gap-4">
                                         <div className="flex flex-col items-center text-center">
-                                            <h1 className="text-2xl font-bold">Reset Password</h1>
-                                            <p className="text-muted-foreground">Enter your new password</p>
+                                            <h1 className="text-2xl font-bold">{UiMessages.RESET_PASSWORD.RESET_PASSWORD_TITLE}</h1>
+                                            <p className="text-muted-foreground">{UiMessages.RESET_PASSWORD.RESET_PASSWORD_DESCRIPTION}</p>
                                         </div>
 
                                         <div className="relative flex items-center gap-2">
@@ -107,7 +108,7 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                                         </div>
 
                                         <Button type="submit" className="w-full" disabled={!formData.password || !formData.confirmPassword}>
-                                            Reset Password
+                                            {UiMessages.RESET_PASSWORD.RESET_PASSWORD_BUTTON}
                                         </Button>
                                     </div>
                                 </form>

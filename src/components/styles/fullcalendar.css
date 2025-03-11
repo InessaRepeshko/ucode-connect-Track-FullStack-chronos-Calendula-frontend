@@ -1,0 +1,78 @@
+.fc {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Заголовок */
+.fc-toolbar-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #202124;
+}
+
+/* Кнопки навигации */
+.fc-button {
+    background: #ffffff !important;
+    border: 1px solid #dadce0 !important;
+    color: #202124 !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    transition: background 0.2s;
+}
+
+.fc-button:hover {
+    background: #f8f9fa !important;
+}
+
+/* Активная кнопка (сегодня) */
+.fc-button-primary:not(:disabled).fc-button-active {
+    background: #1a73e8 !important;
+    color: white !important;
+    border-color: #1a73e8 !important;
+}
+
+/* Дни недели */
+.fc-col-header-cell {
+    background: #f8f9fa;
+    font-weight: 500;
+    color: #5f6368;
+    padding: 10px 0;
+}
+
+/* Сегодняшняя дата */
+.fc-day-today {
+    background-color: rgba(26, 115, 232, 0.2) !important;
+    border-radius: 6px;
+}
+
+/* Ячейки дней */
+.fc-daygrid-day-frame {
+    padding: 8px;
+}
+
+/* Стиль событий */
+.fc-event {
+    background-color: #1a73e8 !important;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Событие при наведении */
+.fc-event:hover {
+    background-color: #174ea6 !important;
+}
+
+/* Временные интервалы в режиме недели и дня */
+.fc-timegrid-slot {
+    border-color: #e8eaed;
+}
+
+/* Границы */
+.fc-daygrid-day {
+    border-color: #e8eaed !important;
+}

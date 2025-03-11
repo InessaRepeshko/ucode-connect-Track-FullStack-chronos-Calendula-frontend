@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import { verifyEmail } from "@/components/redux/actions/authActions";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
-import {MESSAGES} from "@/constants/messages.ts";
+import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
 
 const VerifyEmailPage = () => {
     const navigate = useNavigate();
@@ -13,9 +13,9 @@ const VerifyEmailPage = () => {
             const result = await verifyEmail(confirm_token || "");
             navigate("/login");
             if (result.success) {
-                showSuccessToast(MESSAGES.AUTH.VERIFICATION_SUCCESS);
+                showSuccessToast(ToastStatusMessages.AUTH.VERIFICATION_SUCCESS);
             } else {
-                showErrorToasts(result.errors || MESSAGES.AUTH.VERIFICATION_FAILED);
+                showErrorToasts(result.errors || ToastStatusMessages.AUTH.VERIFICATION_FAILED);
             }
         };
         verify();

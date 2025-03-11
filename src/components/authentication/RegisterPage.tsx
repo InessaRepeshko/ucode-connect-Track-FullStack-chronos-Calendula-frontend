@@ -10,7 +10,8 @@ import { useDispatch } from "react-redux";
 import { registerUser } from "@/components/redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
-import {MESSAGES} from "@/constants/messages.ts";
+import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
+import {UiMessages} from "@/constants/uiMessages.ts";
 
 export default function RegisterPage({className, ...props}: React.ComponentProps<"div">) {
     const [showPassword, setShowPassword] = useState(false);
@@ -31,10 +32,10 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
 
         const result = await registerUser(formData, dispatch);
         if (result.success) {
-            showSuccessToast(MESSAGES.AUTH.REGISTRATION_SUCCESS);
+            showSuccessToast(ToastStatusMessages.AUTH.REGISTRATION_SUCCESS);
             navigate("/login");
         } else {
-            showErrorToasts(result.errors || MESSAGES.AUTH.REGISTRATION_FAILED);
+            showErrorToasts(result.errors || ToastStatusMessages.AUTH.REGISTRATION_FAILED);
         }
     };
 
@@ -54,9 +55,9 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                             <form className="p-6 md:p-8" onSubmit={handleSubmit}>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-col items-center text-center">
-                                        <h1 className="text-2xl font-bold">Welcome back</h1>
+                                        <h1 className="text-2xl font-bold">{UiMessages.REGISTER.REGISTER_TITLE}</h1>
                                         <p className="text-balance text-muted-foreground">
-                                            Register an account
+                                            {UiMessages.REGISTER.REGISTER_DESCRIPTION}
                                         </p>
                                     </div>
                                     <div className="relative flex items-center gap-2">
@@ -157,13 +158,13 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                                     </div>
 
                                     <Button type="submit" className="w-full" disabled={!formData.fullName || !formData.email || !formData.country || !formData.password || !formData.password_confirm}>
-                                        Register
+                                        {UiMessages.REGISTER.REGISTER_BUTTON}
                                     </Button>
 
                                     <div className="text-center text-sm">
-                                        Already have an account?{" "}
+                                        {UiMessages.REGISTER.REGISTER_ALREADY_ACCOUNT}
                                         <a href="/login" className="underline underline-offset-4">
-                                            Log in
+                                            {UiMessages.REGISTER.REGISTER_LOG_IN_BUTTON}
                                         </a>
                                     </div>
                                 </div>

@@ -1,12 +1,26 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./reducers/authReducer.ts";
+import authReducer from "@/components/redux/reducers/authReducer.ts";
+import userReducer from "@/components/redux/reducers/userReducer.ts";
+import calendarReducer from "@/components/redux/reducers/calendarReducer.ts";
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+
+const persistConfig = {
+    key: 'root',
+    storage,
+};
+
+const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 
 const store = configureStore({
     reducer: {
-        auth: authReducer,
+        auth: persistedAuthReducer,
+        users: userReducer,
+        calendars: calendarReducer,
     },
 });
 
+export const persistor = persistStore(store);
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 

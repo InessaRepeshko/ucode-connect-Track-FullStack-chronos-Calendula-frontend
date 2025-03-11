@@ -1,4 +1,4 @@
-export const MESSAGES = {
+export const ToastStatusMessages = {
     AUTH: {
         LOGIN_SUCCESS: "Successful Login.",
         LOGIN_FAILED: "Login failed.",
@@ -11,4 +11,12 @@ export const MESSAGES = {
         VERIFICATION_SUCCESS: "Account successfully verified!",
         VERIFICATION_FAILED: "Account has not been verified!",
     },
+    CALENDARS: {
+        CREATE_SUCCESS: "Successful create calendar.",
+        CREATE_FAILED: "Calendar creation failed.",
+        UPDATE_SUCCESS: "Successful calendar update.",
+        UPDATE_FAILED: "Calendar update failed.",
+        DELETE_SUCCESS: "Calendar deleted successfully.",
+        DELETE_FAILED: "Calendar has not been deleted.",
+    }
 };

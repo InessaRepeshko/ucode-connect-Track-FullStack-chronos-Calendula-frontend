@@ -2,9 +2,9 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Toaster } from 'sonner';
 import LoginPage from "@/components/authentication/LoginPage.tsx";
 import RegisterPage from "@/components/authentication/RegisterPage.tsx";
-import CustomCalendar from "@/components/CustomCalendar.tsx";
 import VerifyEmailPage from "@/components/authentication/VerifyEmailPage.tsx";
 import PasswordResetPage from "@/components/authentication/PasswordResetPage.tsx";
+import MainPage from "@/components/calendar/MainPage.tsx";
 
 
 export default function App() {
@@ -16,7 +16,7 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/confirm-email/:confirm_token" element={<VerifyEmailPage />} />
           <Route path="/password-reset/:confirm_token" element={<PasswordResetPage />} />
-          <Route path="/calendar" element={<CustomCalendar />} />
+          <Route path="/calendar" element={<MainPage />} />
           {/*<Route path="/posts" element={<MainPage/>}/>*/}
           {/*<Route path="/posts/:post_id" element={<PostPage />} />*/}
           {/*<Route path="/categories" element={<CategoryList />} />*/}
@@ -33,24 +33,4 @@ export default function App() {
         </Routes>
       </Router>
   );
-      // <SidebarProvider>
-      //   <AppSidebar />
-      //   <SidebarInset>
-      //     <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-      //       <SidebarTrigger className="-ml-1" />
-      //       <Separator orientation="vertical" className="mr-2 h-4" />
-      //       <Breadcrumb>
-      //         <BreadcrumbList>
-      //           <BreadcrumbItem>
-      //             <BreadcrumbPage>October 2024</BreadcrumbPage>
-      //           </BreadcrumbItem>
-      //         </BreadcrumbList>
-      //       </Breadcrumb>
-      //     </header>
-      //     <div className="flex flex-1 flex-col gap-4 p-4">
-      //       <CustomCalendar />
-      //     </div>
-      //   </SidebarInset>
-      // </SidebarProvider>
-
 }
