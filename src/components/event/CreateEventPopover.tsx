@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
 import {UserSelector} from "@/components/utils/UserSelector.tsx";
+import {BellRing, BookmarkCheck, CalendarFold, Video} from "lucide-react";
 
 interface User {
     id: number;
@@ -67,7 +68,10 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
         }
 
         const formattedStartAt = `${format(startDate, "yyyy-MM-dd")} ${startTime}:00`;
-        const formattedEndAt = `${format(endDateState, "yyyy-MM-dd")} ${endTime}:00`;
+        const isAllDay = endTime === "23:59" && startDate.toDateString() === endDateState.toDateString();
+        const formattedEndAt = isAllDay
+            ? `${format(endDateState, "yyyy-MM-dd")} 23:59:59`
+            : `${format(endDateState, "yyyy-MM-dd")} ${endTime}:00`;
 
         const payload = {
             title,
@@ -117,6 +121,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                 <div className="flex items-center space-x-2">
                     <Select onValueChange={(value) => setCalendarId(Number(value))}>
                         <SelectTrigger>
+                            <CalendarFold strokeWidth={3} />
                             <SelectValue placeholder="Calendar">
                                 {calendarId
                                     ? (() => {
@@ -144,9 +149,9 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                             <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="meeting">Meeting</SelectItem>
-                            <SelectItem value="reminder">Reminder</SelectItem>
-                            <SelectItem value="task">Task</SelectItem>
+                            <SelectItem value="meeting"><Video strokeWidth={3} />Meeting</SelectItem>
+                            <SelectItem value="reminder"><BellRing strokeWidth={3} />Reminder</SelectItem>
+                            <SelectItem value="task"><BookmarkCheck strokeWidth={3} />Task</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

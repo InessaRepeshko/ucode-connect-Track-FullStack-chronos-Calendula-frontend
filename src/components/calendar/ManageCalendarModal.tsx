@@ -70,13 +70,18 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
                         setDescription(calendarToEdit.data.description);
 
                         const creator = users.find(user => user.id === calendarToEdit.data.creationByUserId);
-
                         const participants = calendarToEdit.data.participants.map((p: Participant) => ({
                             ...p.user,
                             role: p.role
                         }));
 
-                        if (creator && !participants.some((u: User) => u.id === creator.id)) {
+                        const owner = participants.find((u: User) => u.role === "owner") ||
+                            (creator ? { ...creator, role: "owner" } : null);
+                        const otherParticipants = participants.filter((u: User) => u.role !== "owner");
+
+                        if (owner) {
+                            setSelectedUsers([owner, ...otherParticipants]);
+                        } else if (creator) {
                             setSelectedUsers([{ ...creator, role: "owner" }, ...participants]);
                         } else {
                             setSelectedUsers(participants);
@@ -120,7 +125,7 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent forceMount className="w-[480px] max-w-md p-6 text-[14px]">
+            <DialogContent forceMount className="w-[500px] max-w-md p-6 text-[14px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-1">
                         {isEditMode ? UiMessages.CALENDAR_MODAL.UPDATE_CALENDAR_TITLE : UiMessages.CALENDAR_MODAL.ADD_CALENDAR_TITLE}

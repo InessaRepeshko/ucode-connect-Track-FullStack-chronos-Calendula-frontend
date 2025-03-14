@@ -22,5 +22,7 @@ export const ToastStatusMessages = {
     EVENTS: {
         CREATE_SUCCESS: "Successful create event.",
         CREATE_FAILED: "Event creation failed.",
+        UPDATE_SUCCESS: "Successful update event.",
+        UPDATE_FAILED: "Event update failed.",
     }
 };

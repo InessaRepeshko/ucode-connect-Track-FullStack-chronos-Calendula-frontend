@@ -11,7 +11,15 @@ import {ColorPicker} from "@/components/calendar/ColorPiker.tsx";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Calendar} from "@/components/ui/calendar"
 import {format} from "date-fns";
-import {CalendarIcon, ChevronDownIcon, ClockIcon} from "lucide-react";
+import {
+    BellRing,
+    BookmarkCheck,
+    BriefcaseBusiness, CalendarFold,
+    CalendarIcon,
+    ChevronDownIcon,
+    ClockIcon, House, Palette,
+    Video
+} from "lucide-react";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {
     Tooltip,
@@ -210,6 +218,7 @@ const CreateEventPage = () => {
                     <div className="flex items-center space-x-2">
                         <Select onValueChange={(value) => setCalendarId(Number(value))} value={calendarId?.toString() || ""}>
                             <SelectTrigger>
+                                <CalendarFold strokeWidth={3} />
                                 <SelectValue placeholder="Calendar">
                                     {calendarId
                                         ? (() => {
@@ -262,13 +271,13 @@ const CreateEventPage = () => {
                             <Tooltip>
                                 <TooltipTrigger>
                                     <Select onValueChange={setType} value={type}>
-                                        <SelectTrigger className="w-30 cursor-pointer">
+                                        <SelectTrigger className=" cursor-pointer">
                                             <SelectValue placeholder="Выберите тип" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="meeting">Meeting</SelectItem>
-                                            <SelectItem value="reminder">Reminder</SelectItem>
-                                            <SelectItem value="task">Task</SelectItem>
+                                            <SelectItem value="meeting"><Video strokeWidth={3} />Meeting</SelectItem>
+                                            <SelectItem value="reminder"><BellRing strokeWidth={3} />Reminder</SelectItem>
+                                            <SelectItem value="task"><BookmarkCheck strokeWidth={3} />Task</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </TooltipTrigger>
@@ -282,13 +291,13 @@ const CreateEventPage = () => {
                             <Tooltip>
                                 <TooltipTrigger>
                                     <Select onValueChange={setCategory} defaultValue={category}>
-                                        <SelectTrigger className="w-30 cursor-pointer">
+                                        <SelectTrigger className=" cursor-pointer">
                                             <SelectValue placeholder="Выберите категорию"/>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="work">Work</SelectItem>
-                                            <SelectItem value="home">Home</SelectItem>
-                                            <SelectItem value="hobby">Hobby</SelectItem>
+                                            <SelectItem value="work"><BriefcaseBusiness strokeWidth={3} />Work</SelectItem>
+                                            <SelectItem value="home"><House strokeWidth={3} />Home</SelectItem>
+                                            <SelectItem value="hobby"><Palette strokeWidth={3} />Hobby</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </TooltipTrigger>
