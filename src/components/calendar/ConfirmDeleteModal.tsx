@@ -15,11 +15,11 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, 
         <Dialog open={isOpen} onOpenChange={onClose} >
             <DialogContent className="w-100 text-center">
                 <DialogHeader>
-                    <DialogTitle className="text-[15px]">{UiMessages.DELETE_MODAL.DELETE_MODAL_TITLE} "{calendarTitle}"?</DialogTitle>
+                    <DialogTitle className="text-[15px]">{UiMessages.DELETE_MODAL.TITLE} "{calendarTitle}"?</DialogTitle>
                 </DialogHeader>
                 <DialogFooter className="flex justify-center">
-                    <Button variant="outline" onClick={onClose}>{UiMessages.GENERAL.GENERAL_CANCEL_BUTTON}</Button>
-                    <Button variant="destructive" onClick={onConfirm}>{UiMessages.GENERAL.GENERAL_DELETE_BUTTON}</Button>
+                    <Button variant="outline" onClick={onClose}>{UiMessages.GENERAL.CANCEL_BUTTON}</Button>
+                    <Button variant="destructive" onClick={onConfirm}>{UiMessages.GENERAL.DELETE_BUTTON}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

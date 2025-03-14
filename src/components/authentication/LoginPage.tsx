@@ -71,9 +71,9 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                                     <form className="p-6 md:p-8 w-full h-[340px]" onSubmit={handleSubmit}>
                                         <div className="flex flex-col gap-4">
                                             <div className="flex flex-col items-center text-center">
-                                                <h1 className="text-2xl font-bold">{UiMessages.LOGIN.LOGIN_TITLE}</h1>
+                                                <h1 className="text-2xl font-bold">{UiMessages.LOGIN.TITLE}</h1>
                                                 <p className="text-balance text-muted-foreground">
-                                                    {UiMessages.LOGIN.LOGIN_DESCRIPTION}
+                                                    {UiMessages.LOGIN.DESCRIPTION}
                                                 </p>
                                             </div>
                                             <div className="relative flex items-center gap-2">
@@ -124,18 +124,18 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                                                         onClick={() => setIsForgotPassword(true)}
                                                         className="text-sm text-muted-foreground underline-offset-2 hover:underline cursor-pointer"
                                                     >
-                                                        {UiMessages.LOGIN.LOGIN_FORGOT_PASSWORD}
+                                                        {UiMessages.LOGIN.FORGOT_PASSWORD}
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <Button type="submit" className="w-full" disabled={!formData.email || !formData.password}>
-                                                {UiMessages.LOGIN.LOGIN_BUTTON}
+                                                {UiMessages.LOGIN.BUTTON}
                                             </Button>
                                             <div className="text-center text-sm">
-                                                {UiMessages.LOGIN.LOGIN_DONT_ACCOUNT}
+                                                {UiMessages.LOGIN.DONT_ACCOUNT}
                                                 <a href="/register" className="underline underline-offset-4">
-                                                    {UiMessages.LOGIN.LOGIN_SIGN_UP_BUTTON}
+                                                    {UiMessages.LOGIN.SIGN_UP_BUTTON}
                                                 </a>
                                             </div>
                                         </div>
@@ -144,9 +144,9 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                                     <form className="flex items-center justify-center p-6 md:p-8 w-full h-[340px]" onSubmit={handleResetPassword}>
                                         <div className="flex flex-col gap-4">
                                             <div className="flex flex-col items-center text-center">
-                                                <h1 className="text-2xl font-bold">{UiMessages.LOGIN.LOGIN_RESET_PASSWORD_TITLE}</h1>
+                                                <h1 className="text-2xl font-bold">{UiMessages.LOGIN.RESET_PASSWORD_TITLE}</h1>
                                                 <p className="text-balance text-muted-foreground">
-                                                    {UiMessages.LOGIN.LOGIN_RESET_PASSWORD_DESCRIPTION}
+                                                    {UiMessages.LOGIN.RESET_PASSWORD_DESCRIPTION}
                                                 </p>
                                             </div>
                                             <div className="relative flex items-center gap-2">
@@ -164,7 +164,7 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                                                 />
                                             </div>
                                             <Button type="submit" className="w-full" disabled={!resetEmail}>
-                                                {UiMessages.LOGIN.LOGIN_SEND_RESET_LINK}
+                                                {UiMessages.LOGIN.SEND_RESET_LINK}
                                             </Button>
                                             <div className="flex items-center justify-center gap-2 w-full">
                                                 <button
@@ -172,7 +172,7 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                                                     onClick={() => setIsForgotPassword(false)}
                                                     className="text-sm text-muted-foreground underline-offset-2 hover:underline text-center cursor-pointer"
                                                 >
-                                                    {UiMessages.LOGIN.LOGIN_BACK}
+                                                    {UiMessages.LOGIN.BACK}
                                                 </button>
                                             </div>
                                         </div>

@@ -55,9 +55,9 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                             <form className="p-6 md:p-8" onSubmit={handleSubmit}>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-col items-center text-center">
-                                        <h1 className="text-2xl font-bold">{UiMessages.REGISTER.REGISTER_TITLE}</h1>
+                                        <h1 className="text-2xl font-bold">{UiMessages.REGISTER.TITLE}</h1>
                                         <p className="text-balance text-muted-foreground">
-                                            {UiMessages.REGISTER.REGISTER_DESCRIPTION}
+                                            {UiMessages.REGISTER.DESCRIPTION}
                                         </p>
                                     </div>
                                     <div className="relative flex items-center gap-2">
@@ -158,13 +158,13 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                                     </div>
 
                                     <Button type="submit" className="w-full" disabled={!formData.fullName || !formData.email || !formData.country || !formData.password || !formData.password_confirm}>
-                                        {UiMessages.REGISTER.REGISTER_BUTTON}
+                                        {UiMessages.REGISTER.BUTTON}
                                     </Button>
 
                                     <div className="text-center text-sm">
-                                        {UiMessages.REGISTER.REGISTER_ALREADY_ACCOUNT}
+                                        {UiMessages.REGISTER.ALREADY_ACCOUNT}
                                         <a href="/login" className="underline underline-offset-4">
-                                            {UiMessages.REGISTER.REGISTER_LOG_IN_BUTTON}
+                                            {UiMessages.REGISTER.LOG_IN_BUTTON}
                                         </a>
                                     </div>
                                 </div>

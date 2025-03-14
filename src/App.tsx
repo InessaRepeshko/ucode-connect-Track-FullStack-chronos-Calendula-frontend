@@ -5,6 +5,7 @@ import RegisterPage from "@/components/authentication/RegisterPage.tsx";
 import VerifyEmailPage from "@/components/authentication/VerifyEmailPage.tsx";
 import PasswordResetPage from "@/components/authentication/PasswordResetPage.tsx";
 import MainPage from "@/components/calendar/MainPage.tsx";
+import CreateEventPage from "@/components/event/CreateEventPage.tsx";
 
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/confirm-email/:confirm_token" element={<VerifyEmailPage />} />
           <Route path="/password-reset/:confirm_token" element={<PasswordResetPage />} />
           <Route path="/calendar" element={<MainPage />} />
+          <Route path="/new-event" element={<CreateEventPage />} />
           {/*<Route path="/posts" element={<MainPage/>}/>*/}
           {/*<Route path="/posts/:post_id" element={<PostPage />} />*/}
           {/*<Route path="/categories" element={<CategoryList />} />*/}

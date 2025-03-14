@@ -1,0 +1,187 @@
+import { FormEvent, useEffect, useState } from "react";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/components/redux/store";
+import { getUsers } from "@/components/redux/actions/userActions.ts";
+import { UiMessages } from "@/constants/uiMessages.ts";
+import { createEvent } from "@/components/redux/actions/eventActions.ts";
+import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
+import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
+import {UserSelector} from "@/components/utils/UserSelector.tsx";
+
+interface User {
+    id: number;
+    fullName: string;
+    email: string;
+    profilePicture: string;
+    role: "viewer" | "editor" | "owner";
+}
+
+interface CreateEventPopoverProps {
+    selectedDate: string | null;
+    endDate: string | null;
+    position?: { x: number; y: number };
+    onSave: (title: string) => void;
+    onClose: () => void;
+}
+
+const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }: CreateEventPopoverProps) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { setDraft } = useEventDraft();
+    const calendars = useSelector((state: RootState) => state.calendars.calendars);
+    const [title, setTitle] = useState("");
+    const [calendarId, setCalendarId] = useState<number | null>(null);
+    const [type, setType] = useState("meeting");
+    const [category] = useState("work");
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [startTime, setStartTime] = useState("");
+    const [endDateState, setEndDate] = useState<Date | undefined>();
+    const [endTime, setEndTime] = useState("");
+    const users = useSelector((state: { users: { users: User[] } }) => state.users.users ?? []);
+    const currentUser = useSelector((state: { auth: { user: User } }) => state.auth.user);
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        if (selectedDate && endDate) {
+            const parsedStartDate = new Date(selectedDate);
+            const parsedEndDate = new Date(endDate);
+            setStartDate(parsedStartDate);
+            setEndDate(parsedEndDate);
+            setStartTime(format(parsedStartDate, "HH:mm"));
+            setEndTime(format(parsedEndDate, "HH:mm"));
+        }
+    }, [selectedDate, endDate]);
+
+    const handleSubmit = async (e?: FormEvent) => {
+        if (e) e.preventDefault();
+
+        if (!startDate || !endDateState) {
+            return;
+        }
+
+        const formattedStartAt = `${format(startDate, "yyyy-MM-dd")} ${startTime}:00`;
+        const formattedEndAt = `${format(endDateState, "yyyy-MM-dd")} ${endTime}:00`;
+
+        const payload = {
+            title,
+            type,
+            calendarId,
+            category,
+            startAt: formattedStartAt,
+            endAt: formattedEndAt,
+            users: selectedUsers.map((user) => ({ id: user.id, role: user.role })),
+        };
+
+        const result = await createEvent(dispatch, payload);
+
+        if (result.success) {
+            showSuccessToast(ToastStatusMessages.EVENTS.CREATE_SUCCESS);
+            onSave(title);
+            setTitle("");
+        } else {
+            showErrorToasts(result.errors || ToastStatusMessages.EVENTS.CREATE_FAILED);
+        }
+    };
+
+    useEffect(() => {
+        (async () => {
+            await getUsers(dispatch);
+        })();
+        if (currentUser && !selectedUsers.some((u) => u.id === currentUser.id)) {
+            setSelectedUsers([{ ...currentUser, role: "owner" }]);
+        }
+    }, [dispatch]);
+
+    return (
+        <Popover open={Boolean(selectedDate)} onOpenChange={(open) => !open && onClose()}>
+            <PopoverContent
+                className="w-[480px] h-[390px] p-6 space-y-4"
+                style={position ? { position: "absolute", top: position.y, left: position.x } : undefined}
+            >
+
+                <Input
+                    placeholder="Add title"
+                    maxLength={50}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    autoFocus
+                />
+
+                <div className="flex items-center space-x-2">
+                    <Select onValueChange={(value) => setCalendarId(Number(value))}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Calendar">
+                                {calendarId
+                                    ? (() => {
+                                        const selectedCalendar = calendars.find((calendar) => calendar.id === calendarId);
+                                        if (selectedCalendar) {
+                                            const title = selectedCalendar.title;
+                                            return `${title.slice(0, 20)}${title.length > 20 ? "..." : ""}`;
+                                        }
+                                        return "Calendar";
+                                    })()
+                                    : "Calendar"}
+                            </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {calendars.map((calendar) => (
+                                <SelectItem key={calendar.id} value={String(calendar.id)}>
+                                    {calendar.title}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select onValueChange={setType} defaultValue={type}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="meeting">Meeting</SelectItem>
+                            <SelectItem value="reminder">Reminder</SelectItem>
+                            <SelectItem value="task">Task</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <UserSelector
+                    users={users}
+                    currentUser={currentUser}
+                    selectedUsers={selectedUsers}
+                    setSelectedUsers={setSelectedUsers}
+                />
+
+                <div className="flex justify-end space-x-2 mt-4">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            setDraft({
+                                title,
+                                startDate,
+                                endDate: endDateState,
+                                type,
+                                calendarId: calendarId || undefined,
+                                startTime,
+                                endTime,
+                                selectedUsers,
+                            });
+                            navigate("/new-event");
+                        }}
+                    >
+                        {UiMessages.GENERAL.MORE_OPTIONS}
+                    </Button>
+                    <Button onClick={handleSubmit}>{UiMessages.GENERAL.CREATE_BUTTON}</Button>
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+export default CreateEventPopover;

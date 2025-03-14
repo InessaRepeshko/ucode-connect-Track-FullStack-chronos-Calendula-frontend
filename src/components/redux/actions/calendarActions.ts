@@ -12,14 +12,34 @@ interface CalendarPayload {
     description?: string;
 }
 
-export const createCalendar = async (dispatch: Dispatch, payload: CalendarPayload) => {
+export const createCalendar = async (dispatch: Dispatch, payload: CalendarPayload, participants: { userId: number; role: string }[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.post("http://localhost:8080/api/calendars", payload, {
+        const { data } = await axios.post("http://localhost:8080/api/calendars", { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         dispatch(addCalendar(data.data));
+        return { success: true, data: data.data, errors: {} };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        dispatch(setError(axiosError.response?.data?.message || null));
+        return {
+            success: false,
+            errors: axiosError.response?.data?.validationErrors,
+        };
+    }
+};
+
+export const updateCalendar = async (dispatch: Dispatch, calendar_id: number, payload: CalendarPayload, participants: { userId: number; role: string }[]) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await axios.patch(
+            `http://localhost:8080/api/calendars/${calendar_id}`, { ...payload, participants }, {
+                headers: { Authorization: `Bearer ${token}`
+                }});
+
+        dispatch(setCalendars(data.data));
         return { success: true, data: data.data, errors: {} };
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
@@ -42,28 +62,6 @@ export const getCalendars = async (dispatch: Dispatch) => {
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
         dispatch(setError(axiosError.response?.data?.message || null));
-    }
-};
-
-export const updateCalendar = async (dispatch: Dispatch, calendar_id: number, payload: CalendarPayload) => {
-    try {
-        const token = localStorage.getItem("token");
-        const { data } = await axios.patch(
-            `http://localhost:8080/api/calendars/${calendar_id}`,
-            payload,
-            {
-                headers: { Authorization: `Bearer ${token}` }
-            }
-        );
-        dispatch(setCalendars(data.data));
-        return { success: true, data: data.data, errors: {} };
-    } catch (error) {
-        const axiosError = error as AxiosError<ErrorResponse>;
-        dispatch(setError(axiosError.response?.data?.message || null));
-        return {
-            success: false,
-            errors: axiosError.response?.data?.validationErrors,
-        };
     }
 };
 

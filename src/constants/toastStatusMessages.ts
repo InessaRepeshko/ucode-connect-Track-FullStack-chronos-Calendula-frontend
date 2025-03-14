@@ -18,5 +18,9 @@ export const ToastStatusMessages = {
         UPDATE_FAILED: "Calendar update failed.",
         DELETE_SUCCESS: "Calendar deleted successfully.",
         DELETE_FAILED: "Calendar has not been deleted.",
+    },
+    EVENTS: {
+        CREATE_SUCCESS: "Successful create event.",
+        CREATE_FAILED: "Event creation failed.",
     }
 };

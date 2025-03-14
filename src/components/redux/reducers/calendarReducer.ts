@@ -1,23 +1,45 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+interface User {
+    id: number;
+    fullName: string;
+    email: string;
+    profilePicture: string;
+    role: string;
+}
+
+interface Participant {
+    id: number;
+    calendarId: number;
+    userId: number;
+    color: string;
+    role: string;
+    isMain: number;
+    user: User;
+}
+
 interface Calendar {
     id: number;
     title: string;
     description: string;
     creationByUserId: number;
     creationAt: string;
+    creator: User;
+    participants: Participant[];
 }
 
 interface CalendarState {
     calendars: Calendar[];
     loading: boolean;
     error: string | null;
+    updatedCalendarParticipants: Participant[] | null;
 }
 
 const initialState: CalendarState = {
     calendars: [],
     loading: false,
     error: null,
+    updatedCalendarParticipants: null,
 };
 
 const calendarSlice = createSlice({

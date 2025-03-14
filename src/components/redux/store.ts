@@ -4,6 +4,7 @@ import userReducer from "@/components/redux/reducers/userReducer.ts";
 import calendarReducer from "@/components/redux/reducers/calendarReducer.ts";
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import eventReducer from "@/components/redux/reducers/eventReducer.ts";
 
 const persistConfig = {
     key: 'root',
@@ -17,6 +18,7 @@ const store = configureStore({
         auth: persistedAuthReducer,
         users: userReducer,
         calendars: calendarReducer,
+        event: eventReducer,
     },
 });
 

@@ -1,14 +1,17 @@
 //import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import store from "./components/redux/store.ts"; // Путь к store
+import store from "./components/redux/store.ts";
 import "./index.css";
 import App from "./App.tsx";
+import { EventDraftProvider } from "./components/utils/EventDraftContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
     //<StrictMode>
         <Provider store={store}>
+            <EventDraftProvider>
             <App />
+            </EventDraftProvider>
         </Provider>
     //</StrictMode>
 );

@@ -59,8 +59,8 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                                 <form className="p-6 md:p-8 w-full" onSubmit={handleSubmit}>
                                     <div className="flex flex-col gap-4">
                                         <div className="flex flex-col items-center text-center">
-                                            <h1 className="text-2xl font-bold">{UiMessages.RESET_PASSWORD.RESET_PASSWORD_TITLE}</h1>
-                                            <p className="text-muted-foreground">{UiMessages.RESET_PASSWORD.RESET_PASSWORD_DESCRIPTION}</p>
+                                            <h1 className="text-2xl font-bold">{UiMessages.RESET_PASSWORD.TITLE}</h1>
+                                            <p className="text-muted-foreground">{UiMessages.RESET_PASSWORD.DESCRIPTION}</p>
                                         </div>
 
                                         <div className="relative flex items-center gap-2">
@@ -108,7 +108,7 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                                         </div>
 
                                         <Button type="submit" className="w-full" disabled={!formData.password || !formData.confirmPassword}>
-                                            {UiMessages.RESET_PASSWORD.RESET_PASSWORD_BUTTON}
+                                            {UiMessages.RESET_PASSWORD.BUTTON}
                                         </Button>
                                     </div>
                                 </form>
