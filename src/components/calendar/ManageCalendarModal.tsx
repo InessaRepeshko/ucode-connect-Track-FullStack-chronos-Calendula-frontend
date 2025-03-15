@@ -4,18 +4,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {CalendarFold} from "lucide-react";
-import {getUsers} from "@/components/redux/actions/userActions.ts";
+import { CalendarFold } from "lucide-react";
+import { getUsers } from "@/components/redux/actions/userActions.ts";
 import {
     createCalendar,
     getCalendarById,
     getCalendars,
     updateCalendar
 } from "@/components/redux/actions/calendarActions.ts";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
-import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
-import {UiMessages} from "@/constants/uiMessages.ts";
-import {UserSelector} from "@/components/utils/UserSelector.tsx";
+import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
+import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
+import { UiMessages } from "@/constants/uiMessages.ts";
+import { UserSelector } from "@/components/utils/UserSelector.tsx";
+
 
 interface AddCalendarModalProps {
     isOpen: boolean;
@@ -29,12 +30,12 @@ interface User {
     fullName: string;
     email: string;
     profilePicture: string;
-    role: 'viewer' | 'editor' | 'owner';
+    role: 'viewer' | 'member' | 'owner';
 }
 
 interface Participant {
     user: User;
-    role: 'viewer' | 'editor';
+    role: 'viewer' | 'member';
 }
 
 export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }: AddCalendarModalProps) {
@@ -45,57 +46,63 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
+    const [calendarType, setCalendarType] = useState<string | null>(null);
+    const [isDataReady, setIsDataReady] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             (async () => {
                 await getUsers(dispatch);
-            })();
-            if (currentUser && !selectedUsers.some((u) => u.id === currentUser.id)) {
-                setSelectedUsers([{ ...currentUser, role: "owner" }]);
-            }
-        } else {
-            resetForm();
-        }
-    }, [isOpen, dispatch]);
-
-    useEffect(() => {
-        if (isOpen) {
-            if (isEditMode && calendar_id) {
-                (async () => {
-                    const calendarToEdit = await getCalendarById(dispatch, calendar_id);
-
-                    if (calendarToEdit.success && calendarToEdit.data) {
-                        setTitle(calendarToEdit.data.title);
-                        setDescription(calendarToEdit.data.description);
-
-                        const creator = users.find(user => user.id === calendarToEdit.data.creationByUserId);
-                        const participants = calendarToEdit.data.participants.map((p: Participant) => ({
-                            ...p.user,
-                            role: p.role
-                        }));
-
-                        const owner = participants.find((u: User) => u.role === "owner") ||
-                            (creator ? { ...creator, role: "owner" } : null);
-                        const otherParticipants = participants.filter((u: User) => u.role !== "owner");
-
-                        if (owner) {
-                            setSelectedUsers([owner, ...otherParticipants]);
-                        } else if (creator) {
-                            setSelectedUsers([{ ...creator, role: "owner" }, ...participants]);
-                        } else {
-                            setSelectedUsers(participants);
-                        }
-                    }
-                })();
-            } else {
-                resetForm();
-                if (currentUser) {
+                if (currentUser && !selectedUsers.some((u) => u.id === currentUser.id)) {
                     setSelectedUsers([{ ...currentUser, role: "owner" }]);
                 }
-            }
+                setIsDataReady(true);
+            })();
+        } else {
+            resetForm();
+            setCalendarType(null);
+            setIsDataReady(false);
         }
-    }, [isOpen, isEditMode, calendar_id, users, currentUser]);
+    }, [isOpen, dispatch, currentUser]);
+
+
+    useEffect(() => {
+        if (isOpen && isEditMode && calendar_id) {
+            (async () => {
+                setIsDataReady(false);
+                const calendarToEdit = await getCalendarById(dispatch, calendar_id);
+
+                if (calendarToEdit.success && calendarToEdit.data) {
+                    setTitle(calendarToEdit.data.title);
+                    setDescription(calendarToEdit.data.description);
+                    setCalendarType(calendarToEdit.data.type);
+
+                    const creator = users.find(user => user.id === calendarToEdit.data.creationByUserId);
+                    const participants = calendarToEdit.data.participants.map((p: Participant) => ({
+                        ...p.user,
+                        role: p.role
+                    }));
+
+                    const owner = participants.find((u: User) => u.role === "owner") ||
+                        (creator ? { ...creator, role: "owner" } : null);
+                    const otherParticipants = participants.filter((u: User) => u.role !== "owner");
+
+                    if (owner) {
+                        setSelectedUsers([owner, ...otherParticipants]);
+                    } else if (creator) {
+                        setSelectedUsers([{ ...creator, role: "owner" }, ...participants]);
+                    } else {
+                        setSelectedUsers(participants);
+                    }
+                }
+                setIsDataReady(true);
+            })();
+        } else if (isOpen && !isEditMode) {
+            resetForm();
+            setCalendarType(null);
+            setIsDataReady(true);
+        }
+    }, [isOpen, isEditMode, calendar_id, users, dispatch]);
 
     const resetForm = () => {
         setTitle("");
@@ -108,20 +115,38 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
         let result;
 
         if (isEditMode && calendar_id) {
-            result = await updateCalendar(dispatch, calendar_id, payload, selectedUsers.map(({ id, role }) => ({ userId: id, role })));
+            result = await updateCalendar(
+                dispatch,
+                calendar_id,
+                payload,
+                selectedUsers.map(({ id, role }) => ({ userId: id, role }))
+            );
         } else {
-            result = await createCalendar(dispatch, payload, selectedUsers.map(({ id, role }) => ({ userId: id, role })));
+            result = await createCalendar(
+                dispatch,
+                payload,
+                selectedUsers.map(({ id, role }) => ({ userId: id, role }))
+            );
         }
 
         if (result.success) {
             await getCalendars(dispatch);
-            showSuccessToast(isEditMode ? ToastStatusMessages.CALENDARS.UPDATE_SUCCESS : ToastStatusMessages.CALENDARS.CREATE_SUCCESS);
+            showSuccessToast(
+                isEditMode ? ToastStatusMessages.CALENDARS.UPDATE_SUCCESS : ToastStatusMessages.CALENDARS.CREATE_SUCCESS
+            );
             onClose();
             resetForm();
         } else {
-            showErrorToasts(result.errors || isEditMode ? ToastStatusMessages.CALENDARS.UPDATE_FAILED : ToastStatusMessages.CALENDARS.CREATE_FAILED);
+            showErrorToasts(
+                result.errors ||
+                (isEditMode ? ToastStatusMessages.CALENDARS.UPDATE_FAILED : ToastStatusMessages.CALENDARS.CREATE_FAILED)
+            );
         }
     };
+
+    if (!isOpen || !isDataReady) {
+        return null;
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -136,18 +161,34 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
                     </DialogDescription>
                 </DialogHeader>
 
-                <Input placeholder="Title" className="mt-1" maxLength={50}  value={title} onChange={(e) => setTitle(e.target.value)} />
-                <Textarea placeholder="Description" className="mt-1" maxLength={250} value={description} onChange={(e) => setDescription(e.target.value)} />
-
-                <UserSelector
-                    users={users}
-                    currentUser={currentUser}
-                    selectedUsers={selectedUsers}
-                    setSelectedUsers={setSelectedUsers}
+                <Input
+                    placeholder="Title"
+                    className="mt-1"
+                    maxLength={50}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                />
+                <Textarea
+                    placeholder="Description"
+                    className="mt-1"
+                    maxLength={250}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                 />
 
+                {calendarType !== "main" && (
+                    <UserSelector
+                        users={users}
+                        currentUser={currentUser}
+                        selectedUsers={selectedUsers}
+                        setSelectedUsers={setSelectedUsers}
+                    />
+                )}
+
                 <div className="mt-2 flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => { onClose(); resetForm(); }}>Cancel</Button>
+                    <Button variant="outline" onClick={() => { onClose(); resetForm(); }}>
+                        Cancel
+                    </Button>
                     <Button disabled={!title} onClick={handleSave}>
                         {isEditMode ? UiMessages.GENERAL.UPDATE_BUTTON : UiMessages.GENERAL.CREATE_BUTTON}
                     </Button>

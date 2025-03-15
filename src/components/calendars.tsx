@@ -25,11 +25,13 @@ import {
 } from "@/components/ui/sidebar";
 import {ColorPicker} from "@/components/calendar/ColorPiker.tsx";
 import {ManageCalendarModal} from "@/components/calendar/ManageCalendarModal.tsx";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {deleteCalendar} from "@/components/redux/actions/calendarActions.ts";
 import {ConfirmDeleteModal} from "@/components/calendar/ConfirmDeleteModal.tsx";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
 import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
+import {toggleCalendarSelection} from "@/components/redux/reducers/calendarReducer.ts";
+import {RootState} from "@/components/redux/store.ts";
 
 interface CalendarItem {
     id: number;
@@ -45,6 +47,7 @@ interface CalendarsProps {
 
 export function Calendars({calendars}: CalendarsProps) {
     const dispatch = useDispatch();
+    const selectedCalendarIds = useSelector((state: RootState) => state.calendars.selectedCalendarIds);
     const [selectedColor, setSelectedColor] = React.useState("#000000");
     const [selectedCalendar, setSelectedCalendar] = React.useState<CalendarItem | null>(null);
     const [hoveredItem, setHoveredItem] = React.useState<string | null>(null);
@@ -73,6 +76,11 @@ export function Calendars({calendars}: CalendarsProps) {
             showErrorToasts(result.errors || ToastStatusMessages.CALENDARS.DELETE_FAILED);
         }
     };
+
+    const handleToggleCalendar = (calendarId: number) => {
+        dispatch(toggleCalendarSelection(calendarId));
+    };
+
     const { isMobile } = useSidebar()
     return (
         <>
@@ -102,10 +110,13 @@ export function Calendars({calendars}: CalendarsProps) {
                                                     if (!openDropdown) setHoveredItem(null);
                                                 }}
                                             >
-                                                <SidebarMenuButton className="flex items-center justify-between w-full">
+                                                <SidebarMenuButton
+                                                    className="flex items-center justify-between w-full"
+                                                    onClick={() => handleToggleCalendar(item.id)}
+                                                >
                                                     <div className="flex items-center">
                                                         <div
-                                                            data-active={false}
+                                                            data-active={selectedCalendarIds.includes(item.id)}
                                                             className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
                                                         >
                                                             <Check

@@ -5,7 +5,7 @@ interface User {
     fullName: string;
     email: string;
     profilePicture: string;
-    role: "viewer" | "editor" | "owner";
+    role: "viewer" | "member" | "owner";
 }
 
 interface EventDraft {

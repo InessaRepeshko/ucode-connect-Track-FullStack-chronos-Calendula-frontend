@@ -6,7 +6,7 @@ export const UiMessages = {
         CREATE_BUTTON: 'Create',
         OWNER: "Owner",
         VIEWER: "Viewer",
-        EDITOR: "Editor",
+        MEMBER: "Member",
         MORE_OPTIONS: "More options",
     },
     LOGIN: {

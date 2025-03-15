@@ -13,14 +13,14 @@ interface ErrorResponse {
     message?: string;
 }
 
-interface EventPayload {
+export interface EventPayload {
     title: string;
-    description?: string;
-    category: string;
     type: string;
+    description?: string;
+    calendarId: number;
+    category: string;
     startAt: string;
     endAt: string;
-    participants?: { userId: number; color: string }[];
 }
 
 export const getEvents = async (dispatch: Dispatch) => {
@@ -37,10 +37,10 @@ export const getEvents = async (dispatch: Dispatch) => {
     }
 };
 
-export const createEvent = async (dispatch: Dispatch, payload: EventPayload) => {
+export const createEvent = async (dispatch: Dispatch, payload: EventPayload, participants: { userId: number}[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.post("http://localhost:8080/api/events", payload, {
+        const { data } = await axios.post("http://localhost:8080/api/events", { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` }
         });
 

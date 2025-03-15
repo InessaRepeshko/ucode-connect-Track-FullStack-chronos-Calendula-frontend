@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/components/redux/store";
 import { getUsers } from "@/components/redux/actions/userActions.ts";
 import { UiMessages } from "@/constants/uiMessages.ts";
-import { createEvent } from "@/components/redux/actions/eventActions.ts";
+import { createEvent, EventPayload } from "@/components/redux/actions/eventActions.ts";
 import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
 import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
 import { format } from "date-fns";
@@ -21,7 +21,7 @@ interface User {
     fullName: string;
     email: string;
     profilePicture: string;
-    role: "viewer" | "editor" | "owner";
+    role: "viewer" | "member" | "owner";
 }
 
 interface CreateEventPopoverProps {
@@ -50,6 +50,17 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
 
     useEffect(() => {
+        if (calendars.length > 0 && calendarId === null) {
+            const mainCalendar = calendars.find((calendar) => calendar.type === "main");
+            if (mainCalendar) {
+                setCalendarId(mainCalendar.id);
+            } else {
+                setCalendarId(calendars[0]?.id || null)
+            }
+        }
+    }, [calendars, calendarId]);
+
+    useEffect(() => {
         if (selectedDate && endDate) {
             const parsedStartDate = new Date(selectedDate);
             const parsedEndDate = new Date(endDate);
@@ -63,7 +74,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
     const handleSubmit = async (e?: FormEvent) => {
         if (e) e.preventDefault();
 
-        if (!startDate || !endDateState) {
+        if (!startDate || !endDateState || calendarId === null) {
             return;
         }
 
@@ -73,17 +84,16 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
             ? `${format(endDateState, "yyyy-MM-dd")} 23:59:59`
             : `${format(endDateState, "yyyy-MM-dd")} ${endTime}:00`;
 
-        const payload = {
+        const payload: EventPayload = {
             title,
             type,
             calendarId,
             category,
             startAt: formattedStartAt,
             endAt: formattedEndAt,
-            users: selectedUsers.map((user) => ({ id: user.id, role: user.role })),
         };
 
-        const result = await createEvent(dispatch, payload);
+        const result = await createEvent(dispatch, payload, selectedUsers.map(({ id}) => ({ userId: id})));
 
         if (result.success) {
             showSuccessToast(ToastStatusMessages.EVENTS.CREATE_SUCCESS);
@@ -106,7 +116,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
     return (
         <Popover open={Boolean(selectedDate)} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
-                className="w-[480px] h-[390px] p-6 space-y-4"
+                className="w-[430px] h-[390px] p-6 space-y-4"
                 style={position ? { position: "absolute", top: position.y, left: position.x } : undefined}
             >
 
@@ -119,7 +129,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                 />
 
                 <div className="flex items-center space-x-2">
-                    <Select onValueChange={(value) => setCalendarId(Number(value))}>
+                    <Select onValueChange={(value) => setCalendarId(Number(value))} value={calendarId?.toString() || ""}>
                         <SelectTrigger>
                             <CalendarFold strokeWidth={3} />
                             <SelectValue placeholder="Calendar">
@@ -161,6 +171,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                     currentUser={currentUser}
                     selectedUsers={selectedUsers}
                     setSelectedUsers={setSelectedUsers}
+                    showRoleSelector={false}
                 />
 
                 <div className="flex justify-end space-x-2 mt-4">

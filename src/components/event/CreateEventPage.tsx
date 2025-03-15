@@ -35,18 +35,20 @@ import {Toggle} from "@/components/ui/toggle.tsx";
 import {useNavigate} from "react-router-dom";
 import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
 import {UserSelector} from "@/components/utils/UserSelector.tsx";
+import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
 
 interface User {
     id: number;
     fullName: string;
     email: string;
     profilePicture: string;
-    role: 'viewer' | 'editor' | 'owner';
+    role: 'viewer' | 'member' | 'owner';
 }
 
 interface Calendar {
     id: number;
     title: string;
+    type: string;
 }
 
 const CreateEventPage = () => {
@@ -74,7 +76,7 @@ const CreateEventPage = () => {
     const [selectedUsers, setSelectedUsers] = useState<User[]>(draft?.selectedUsers || []);
 
     useEffect(() => {
-        if (draft) {
+        if (draft && draft.calendarId !== undefined) {
             setTitle(draft.title || "");
             setStartDate(draft.startDate);
             setEndDate(draft.endDate);
@@ -83,8 +85,15 @@ const CreateEventPage = () => {
             setType(draft.type || "meeting");
             setCalendarId(draft.calendarId || null);
             setSelectedUsers(draft.selectedUsers || []);
+        } else if (calendars.length > 0 && calendarId === null) {
+            const mainCalendar = calendars.find((calendar) => calendar.type === "main");
+            if (mainCalendar) {
+                setCalendarId(mainCalendar.id);
+            } else {
+                setCalendarId(calendars[0]?.id || null);
+            }
         }
-    }, [draft]);
+    }, [calendars, draft]);
 
     useEffect(() => {
         (async () => {
@@ -98,7 +107,7 @@ const CreateEventPage = () => {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
-        if (!startDate || !endDate) return;
+        if (!startDate || !endDate || calendarId === null) return;
 
         const formattedStartAt = `${format(startDate, "yyyy-MM-dd")} ${startTime}:00`;
         const formattedEndAt = `${format(endDate, "yyyy-MM-dd")} ${endTime}:00`;
@@ -112,12 +121,12 @@ const CreateEventPage = () => {
             endAt: allDay ? `${formattedStartAt.split(" ")[0]} 23:59:59` : formattedEndAt,
             calendarId,
             color,
-            users: selectedUsers.map(user => ({id: user.id, role: user.role}))
         };
 
-        const result = await (createEvent(dispatch, payload));
+        const result = await createEvent(dispatch, payload, selectedUsers.map(({ id}) => ({ userId: id})));
 
         if (result.success) {
+            await getCalendars(dispatch);
             navigate('/calendar');
             showSuccessToast(ToastStatusMessages.EVENTS.CREATE_SUCCESS);
         } else {
@@ -316,6 +325,7 @@ const CreateEventPage = () => {
                         currentUser={currentUser}
                         selectedUsers={selectedUsers}
                         setSelectedUsers={setSelectedUsers}
+                        showRoleSelector={false}
                     />
 
                     <div className="mt-2 flex justify-end space-x-2">

@@ -5,8 +5,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { useState, useEffect, useRef } from "react";
 import "@/components/styles/fullcalendar.css";
 import CreateEventPopover from "@/components/event/CreateEventPopover.tsx";
-import {getEvents} from "@/components/redux/actions/eventActions.ts";
-import {useDispatch, useSelector} from "react-redux";
+import { useSelector} from "react-redux";
 import {RootState} from "@/components/redux/store.ts";
 
 interface EventType {
@@ -18,9 +17,9 @@ interface EventType {
 }
 
 export default function CustomCalendar() {
-    const dispatch = useDispatch();
     const [events, setEvents] = useState<EventType[]>([]);
-    const reduxEvents = useSelector((state: RootState) => state.event.events);
+    const calendars = useSelector((state: RootState) => state.calendars.calendars)
+    const selectedCalendarIds = useSelector((state: RootState) => state.calendars.selectedCalendarIds);
     const currentUser = useSelector((state: RootState) => state.auth.user);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
@@ -30,23 +29,24 @@ export default function CustomCalendar() {
     const calendarRef = useRef<FullCalendar>(null);
 
     useEffect(() => {
-        getEvents(dispatch);
-    }, [dispatch]);
+        if (!calendars.length || !currentUser?.id) return;
 
-    useEffect(() => {
-        if (!currentUser?.id || !reduxEvents.length) return;
-        setEvents(
-            reduxEvents
-                .filter(event => event.creationByUserId === currentUser.id)
-                .map(event => ({
-                    id: event.id.toString(),
-                    title: event.title,
-                    start: new Date(event.startAt),
-                    end: new Date(event.endAt),
-                    allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
-                }))
-        );
-    }, [reduxEvents, currentUser?.id]);
+        const allEvents = calendars
+            .filter(calendar =>
+                selectedCalendarIds.includes(calendar.id) &&
+                (calendar.creationByUserId === currentUser.id ||
+                    calendar.participants.some(p => p.userId === currentUser.id))
+            )
+            .flatMap(calendar => calendar.events.map(event => ({
+                id: event.id.toString(),
+                title: event.title,
+                start: new Date(event.startAt),
+                end: new Date(event.endAt),
+                allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
+            })));
+
+        setEvents(allEvents);
+    }, [calendars, selectedCalendarIds, currentUser?.id]);
 
 
     const handleAddEvent = (title: string) => {
@@ -84,7 +84,7 @@ export default function CustomCalendar() {
             const eventEl = document.querySelector(`.fc-event[data-event-id="${tempEventId}"]`);
             if (eventEl) {
                 const rect = eventEl.getBoundingClientRect();
-                const popoverWidth = 480;
+                const popoverWidth = 430;
                 const popoverHeight = 390;
                 const screenWidth = window.innerWidth;
                 const screenHeight = window.innerHeight;
@@ -126,6 +126,7 @@ export default function CustomCalendar() {
         const calendarApi = calendarRef.current?.getApi();
         if (calendarApi) {
             const now = new Date();
+            now.setHours(now.getHours() - 5);
             const timeString = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}:00`;
             calendarApi.scrollToTime(timeString);
         }

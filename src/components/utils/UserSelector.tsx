@@ -11,17 +11,18 @@ interface User {
     fullName: string;
     email: string;
     profilePicture: string;
-    role: "viewer" | "editor" | "owner";
+    role: "viewer" | "member" | "owner";
 }
 
 interface UserSelectorProps {
-    users: User[];          // Список всех доступных пользователей
-    currentUser: User;      // Текущий пользователь
-    selectedUsers: User[];  // Список выбранных пользователей
-    setSelectedUsers: (users: User[]) => void; // Функция для обновления выбранных пользователей
+    users: User[];
+    currentUser: User;
+    selectedUsers: User[];
+    setSelectedUsers: (users: User[]) => void;
+    showRoleSelector?: boolean;
 }
 
-export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUsers }: UserSelectorProps) => {
+export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUsers, showRoleSelector = true, }: UserSelectorProps) => {
     const [search, setSearch] = useState("");
 
     const filteredUsers = (users ?? []).filter(
@@ -36,7 +37,7 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
         setSearch("");
     };
 
-    const updateUserRole = (id: number, role: "viewer" | "editor") => {
+    const updateUserRole = (id: number, role: "viewer" | "member") => {
         setSelectedUsers(selectedUsers.map((user) => (user.id === id ? { ...user, role } : user)));
     };
 
@@ -107,22 +108,24 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
 
                         <div className="flex items-center space-x-2">
                             {user.id !== currentUser.id ? (
-                                <Select
-                                    value={user.role}
-                                    onValueChange={(role: "viewer" | "editor") => updateUserRole(user.id, role)}
-                                >
-                                    <SelectTrigger className="w-24 cursor-pointer">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="viewer" className="cursor-pointer">
-                                            {UiMessages.GENERAL.VIEWER}
-                                        </SelectItem>
-                                        <SelectItem value="editor" className="cursor-pointer">
-                                            {UiMessages.GENERAL.EDITOR}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                showRoleSelector && (
+                                    <Select
+                                        value={user.role}
+                                        onValueChange={(role: "viewer" | "member") => updateUserRole(user.id, role)}
+                                    >
+                                        <SelectTrigger className="w-26 cursor-pointer">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="viewer" className="cursor-pointer">
+                                                {UiMessages.GENERAL.VIEWER}
+                                            </SelectItem>
+                                            <SelectItem value="member" className="cursor-pointer">
+                                                {UiMessages.GENERAL.MEMBER}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )
                             ) : (
                                 <span className="text-[15px] font-semibold text-gray-600 flex items-center">
                                     <Crown className="w-6 h-6 text-yellow-500 mr-1" />

@@ -1,6 +1,12 @@
 import axios, { AxiosError } from "axios";
 import { Dispatch } from "redux";
-import {setError, addCalendar, setCalendars, removeCalendar} from "@/components/redux/reducers/calendarReducer.ts";
+import {
+    setError,
+    addCalendar,
+    setCalendars,
+    removeCalendar,
+    updateCalendarAction
+} from "@/components/redux/reducers/calendarReducer.ts";
 
 interface ErrorResponse {
     validationErrors?: { path: string; msg: string }[];
@@ -18,7 +24,6 @@ export const createCalendar = async (dispatch: Dispatch, payload: CalendarPayloa
         const { data } = await axios.post("http://localhost:8080/api/calendars", { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` }
         });
-
         dispatch(addCalendar(data.data));
         return { success: true, data: data.data, errors: {} };
     } catch (error) {
@@ -39,7 +44,7 @@ export const updateCalendar = async (dispatch: Dispatch, calendar_id: number, pa
                 headers: { Authorization: `Bearer ${token}`
                 }});
 
-        dispatch(setCalendars(data.data));
+        dispatch(updateCalendarAction(data.data));
         return { success: true, data: data.data, errors: {} };
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
