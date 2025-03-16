@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
 import {UserSelector} from "@/components/utils/UserSelector.tsx";
 import {BellRing, BookmarkCheck, CalendarFold, Video} from "lucide-react";
+import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
 
 interface User {
     id: number;
@@ -96,6 +97,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
         const result = await createEvent(dispatch, payload, selectedUsers.map(({ id}) => ({ userId: id})));
 
         if (result.success) {
+            await getCalendars(dispatch);
             showSuccessToast(ToastStatusMessages.EVENTS.CREATE_SUCCESS);
             onSave(title);
             setTitle("");

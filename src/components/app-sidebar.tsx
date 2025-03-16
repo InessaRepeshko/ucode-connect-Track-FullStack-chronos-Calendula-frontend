@@ -41,7 +41,10 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     useEffect(() => {
         if (calendars.length > 0 && userId) {
             const updatedUserCalendars = calendars
-                .filter((calendar) => calendar.creationByUserId === userId)
+                .filter((calendar) =>
+                    calendar.creationByUserId === userId ||
+                    calendar.participants.some(participant => participant.userId === userId)
+                )
                 .map((calendar) => ({
                     id: calendar.id,
                     title: calendar.title,

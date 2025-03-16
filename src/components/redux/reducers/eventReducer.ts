@@ -56,7 +56,7 @@ const eventSlice = createSlice({
         updateEventRedux: (state, action: PayloadAction<Event>) => {
             const index = state.events.findIndex((event) => event.id === action.payload.id);
             if (index !== -1) {
-                state.events[index] = action.payload; // Обновляем событие
+                state.events[index] = action.payload;
             }
         },
         setError: (state, action: PayloadAction<string | null>) => {

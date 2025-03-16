@@ -56,10 +56,10 @@ export const createEvent = async (dispatch: Dispatch, payload: EventPayload, par
     }
 };
 
-export const updateEvent = async (dispatch: Dispatch, eventId: number, payload: EventPayload) => {
+export const updateEvent = async (dispatch: Dispatch, eventId: number, payload: EventPayload, participants: { userId: number}[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.patch(`http://localhost:8080/api/events/${eventId}`, payload, {
+        const { data } = await axios.patch(`http://localhost:8080/api/events/${eventId}`, { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

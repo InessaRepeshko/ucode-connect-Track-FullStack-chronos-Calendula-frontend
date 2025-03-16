@@ -100,8 +100,8 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="Ukraine">Ukraine</SelectItem>
-                                                <SelectItem value="Poland">Poland</SelectItem>
-                                                <SelectItem value="Spain">Spain</SelectItem>
+                                                <SelectItem value="Finland">Finland</SelectItem>
+                                                <SelectItem value="Estonia">Estonia</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
