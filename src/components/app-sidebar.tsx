@@ -27,7 +27,6 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     const calendars = useSelector((state: RootState) => state.calendars.calendars);
     const userId = user?.id;
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-    const [userCalendars, setUserCalendars] = useState<{ id: number; title: string }[]>([]);
 
     useEffect(() => {
         (async () => {
@@ -38,31 +37,53 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     }, [dispatch, calendars.length]);
 
 
-    useEffect(() => {
-        if (calendars.length > 0 && userId) {
-            const updatedUserCalendars = calendars
-                .filter((calendar) =>
-                    calendar.creationByUserId === userId ||
-                    calendar.participants.some(participant => participant.userId === userId)
-                )
-                .map((calendar) => ({
-                    id: calendar.id,
-                    title: calendar.title,
-                }));
-            setUserCalendars(updatedUserCalendars);
-        }
-    }, [calendars, userId]);
-    console.log(calendars);
+    // console.log(calendars);
 
     const data = [
         {
             name: "My Calendars",
-            items: userCalendars,
+            items: calendars
+                .filter((calendar) =>
+                    (calendar.type === "shared" || calendar.type === "main") &&
+                    (calendar.creationByUserId === userId ||
+                        calendar.participants.some(participant => participant.userId === userId))
+                )
+                .map((calendar) => {
+                    const participant = calendar.participants.find(p => p.userId === userId);
+                    const role = participant ? participant.role : "owner";
+                    return {
+                        id: calendar.id,
+                        title: calendar.title,
+                        type: calendar.type,
+                        role: role as "owner" | "member" | "viewer",
+                    };
+                })
+                .sort((a, b) => {
+                    if (a.type === "main" && b.type !== "main") return -1;
+                    if (a.type !== "main" && b.type === "main") return 1;
+
+                    const roleOrder = { "owner": 1, "member": 2, "viewer": 3 };
+                    const aRoleOrder = roleOrder[a.role] || 4;
+                    const bRoleOrder = roleOrder[b.role] || 4;
+                    if (aRoleOrder !== bRoleOrder) return aRoleOrder - bRoleOrder;
+
+                    return a.id - b.id;
+                }),
         },
-        // {
-        //   name: "Others",
-        //   items: userCalendars,
-        // },
+        {
+            name: "Others Calendars",
+            items: calendars
+                .filter((calendar) =>
+                    calendar.type === "holidays" &&
+                    (calendar.creationByUserId === userId ||
+                        calendar.participants.some(participant => participant.userId === userId))
+                )
+                .map((calendar) => ({
+                    id: calendar.id,
+                    title: calendar.title,
+                }))
+                .sort((a, b) => a.id - b.id),
+        },
     ];
 
     return (
