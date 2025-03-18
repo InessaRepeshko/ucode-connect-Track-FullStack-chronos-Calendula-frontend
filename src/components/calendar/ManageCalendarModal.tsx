@@ -15,7 +15,7 @@ import {
 import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
 import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
 import { UiMessages } from "@/constants/uiMessages.ts";
-import { UserSelector } from "@/components/utils/UserSelector.tsx";
+import UserSelector from "@/components/utils/UserSelector.tsx";
 
 
 interface AddCalendarModalProps {
@@ -48,6 +48,7 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
     const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
     const [calendarType, setCalendarType] = useState<string | null>(null);
     const [isDataReady, setIsDataReady] = useState(false);
+    const [creatorId, setCreatorId] = useState<number | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -55,6 +56,7 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
                 await getUsers(dispatch);
                 if (currentUser && !selectedUsers.some((u) => u.id === currentUser.id)) {
                     setSelectedUsers([{ ...currentUser, role: "owner" }]);
+                    setCreatorId(currentUser.id);
                 }
                 setIsDataReady(true);
             })();
@@ -94,12 +96,14 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
                     } else {
                         setSelectedUsers(participants);
                     }
+                    setCreatorId(calendarToEdit.data.creationByUserId || currentUser.id);
                 }
                 setIsDataReady(true);
             })();
         } else if (isOpen && !isEditMode) {
             resetForm();
             setCalendarType(null);
+            setCreatorId(currentUser.id);
             setIsDataReady(true);
         }
     }, [isOpen, isEditMode, calendar_id, users, dispatch]);
@@ -179,9 +183,9 @@ export function ManageCalendarModal({ isOpen, onClose, isEditMode, calendar_id }
                 {calendarType !== "main" && (
                     <UserSelector
                         users={users}
-                        currentUser={currentUser}
                         selectedUsers={selectedUsers}
                         setSelectedUsers={setSelectedUsers}
+                        creatorId={creatorId}
                     />
                 )}
 

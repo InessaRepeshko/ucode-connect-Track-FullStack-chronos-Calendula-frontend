@@ -36,6 +36,9 @@ import {RootState} from "@/components/redux/store.ts";
 interface CalendarItem {
     id: number;
     title: string;
+    type: string;
+    creationByUserId: string;
+    role: "owner" | "member" | "viewer";
 }
 
 interface CalendarsProps {
@@ -77,6 +80,12 @@ export function Calendars({calendars}: CalendarsProps) {
         }
     };
 
+    const handleUnsubscribeClick = (calendarId: number) => {
+        // Здесь логика отписки (например, вызов действия Redux)
+        console.log(`Unsubscribe from calendar ${calendarId}`);
+        // Пример: dispatch(unsubscribeFromCalendar(calendarId));
+    };
+
     const handleToggleCalendar = (calendarId: number) => {
         dispatch(toggleCalendarSelection(calendarId));
     };
@@ -101,76 +110,95 @@ export function Calendars({calendars}: CalendarsProps) {
                             <CollapsibleContent>
                                 <SidebarGroupContent>
                                     <SidebarMenu>
-                                        {calendar.items.map((item) => (
-                                            <SidebarMenuItem
-                                                key={item.id}
-                                                className="flex justify-between items-center"
-                                                onMouseEnter={() => setHoveredItem(item.title)}
-                                                onMouseLeave={() => {
-                                                    if (!openDropdown) setHoveredItem(null);
-                                                }}
-                                            >
-                                                <SidebarMenuButton
-                                                    className="flex items-center justify-between w-full"
-                                                    onClick={() => handleToggleCalendar(item.id)}
+                                        {calendar.items.map((item) => {
+                                            const isOwner = item.role === "owner";
+                                            const isMemberOrViewer = item.role === "member" || item.role === "viewer";
+
+                                            return (
+                                                <SidebarMenuItem
+                                                    key={item.id}
+                                                    className="flex justify-between items-center"
+                                                    onMouseEnter={() => setHoveredItem(item.title)}
+                                                    onMouseLeave={() => {
+                                                        if (!openDropdown) setHoveredItem(null);
+                                                    }}
                                                 >
-                                                    <div className="flex items-center">
-                                                        <div
-                                                            data-active={selectedCalendarIds.includes(item.id)}
-                                                            className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
-                                                        >
-                                                            <Check
-                                                                className="hidden size-3 group-data-[active=true]/calendar-item:block"/>
-                                                        </div>
-                                                        <span
-                                                            className="ml-2 truncate max-w-[150px] overflow-hidden whitespace-nowrap">
-                                                            {item.title}
-                                                        </span>
-                                                    </div>
-                                                    {(hoveredItem === item.title || openDropdown === item.title) && (
-                                                        <DropdownMenu
-                                                            onOpenChange={(isOpen) => setOpenDropdown(isOpen ? item.title : null)}
-                                                        >
-                                                            <DropdownMenuTrigger
-                                                                className="ml-2 p-2 rounded-md hover:bg-gray-200 focus:bg-gray-300 transition cursor-pointer">
-                                                                <MoreVertical
-                                                                    className="size-4 text-gray-600 hover:text-gray-800"/>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent
-                                                                side={isMobile ? "bottom" : "right"}
-                                                                align="start"
-                                                                sideOffset={4}
+                                                    <SidebarMenuButton
+                                                        className="flex items-center justify-between w-full"
+                                                        onClick={() => handleToggleCalendar(item.id)}
+                                                    >
+                                                        <div className="flex items-center">
+                                                            <div
+                                                                data-active={selectedCalendarIds.includes(item.id)}
+                                                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
                                                             >
-                                                                <DropdownMenuItem
-                                                                    className="cursor-pointer"
-                                                                    onClick={() => handleEditClick(item)}
+                                                                <Check
+                                                                    className="hidden size-3 group-data-[active=true]/calendar-item:block"
+                                                                />
+                                                            </div>
+                                                            <span className="ml-2 truncate max-w-[150px] overflow-hidden whitespace-nowrap">
+                                                                {item.title}
+                                                            </span>
+                                                        </div>
+                                                        {(hoveredItem === item.title || openDropdown === item.title) && (
+                                                            <DropdownMenu
+                                                                onOpenChange={(isOpen) =>
+                                                                    setOpenDropdown(isOpen ? item.title : null)
+                                                                }
+                                                            >
+                                                                <DropdownMenuTrigger
+                                                                    className="ml-2 p-2 rounded-md hover:bg-gray-200 focus:bg-gray-300 transition cursor-pointer"
                                                                 >
-                                                                    Edit
-                                                                </DropdownMenuItem>
-
-                                                                <DropdownMenuItem
-                                                                    className="text-red-500 cursor-pointer"
-                                                                    onClick={() => handleDeleteClick(item)}
+                                                                    <MoreVertical className="size-4 text-gray-600 hover:text-gray-800" />
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent
+                                                                    side={isMobile ? "bottom" : "right"}
+                                                                    align="start"
+                                                                    sideOffset={4}
                                                                 >
-                                                                    Delete
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator/>
-                                                                <DropdownMenuItem style={{ backgroundColor: 'transparent' }}>
-                                                                    <div className="flex gap-2">
-                                                                        <ColorPicker
-                                                                            selectedColor={selectedColor}
-                                                                            onChange={setSelectedColor}
-                                                                        />
-                                                                    </div>
-                                                                </DropdownMenuItem>
+                                                                    {isOwner && (
+                                                                        <DropdownMenuItem
+                                                                            className="cursor-pointer"
+                                                                            onClick={() => handleEditClick(item)}
+                                                                        >
+                                                                            Edit
+                                                                        </DropdownMenuItem>
+                                                                    )}
 
+                                                                    {isOwner && item.type !== "main" && (
+                                                                        <DropdownMenuItem
+                                                                            className="text-red-500 cursor-pointer"
+                                                                            onClick={() => handleDeleteClick(item)}
+                                                                        >
+                                                                            Delete
+                                                                        </DropdownMenuItem>
+                                                                    )}
 
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    )}
-                                                </SidebarMenuButton>
-                                            </SidebarMenuItem>
-                                        ))}
+                                                                    {isMemberOrViewer && (
+                                                                        <DropdownMenuItem
+                                                                            className="text-blue-500 cursor-pointer"
+                                                                            onClick={() => handleUnsubscribeClick(item.id)}
+                                                                        >
+                                                                            Unsubscribe
+                                                                        </DropdownMenuItem>
+                                                                    )}
+
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem style={{ backgroundColor: "transparent" }}>
+                                                                        <div className="flex gap-2">
+                                                                            <ColorPicker
+                                                                                selectedColor={selectedColor}
+                                                                                onChange={setSelectedColor}
+                                                                            />
+                                                                        </div>
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        )}
+                                                    </SidebarMenuButton>
+                                                </SidebarMenuItem>
+                                            );
+                                        })}
                                     </SidebarMenu>
                                 </SidebarGroupContent>
                             </CollapsibleContent>

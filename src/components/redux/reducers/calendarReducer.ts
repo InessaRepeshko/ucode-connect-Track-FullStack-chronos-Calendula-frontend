@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface User {
+export interface User {
     id: number;
     fullName: string;
     email: string;
@@ -8,7 +8,7 @@ interface User {
     role: string;
 }
 
-interface Participant {
+export interface Participant {
     id: number;
     calendarId: number;
     userId: number;
@@ -18,7 +18,7 @@ interface Participant {
     user: User;
 }
 
-interface EventParticipant {
+export interface EventParticipant {
     id: number;
     eventId: number;
     userId: number;
@@ -28,7 +28,7 @@ interface EventParticipant {
     user: User;
 }
 
-interface CalendarEvent {
+export interface CalendarEvent {
     id: number;
     creationByUserId: number;
     title: string;
@@ -41,7 +41,7 @@ interface CalendarEvent {
     participants: EventParticipant[];
 }
 
-interface Calendar {
+export interface CalendarReducer {
     id: number;
     title: string;
     description: string;
@@ -54,7 +54,7 @@ interface Calendar {
 }
 
 interface CalendarState {
-    calendars: Calendar[];
+    calendars: CalendarReducer[];
     loading: boolean;
     error: string | null;
     updatedCalendarParticipants: Participant[] | null;
@@ -73,17 +73,17 @@ const calendarSlice = createSlice({
     name: "calendars",
     initialState,
     reducers: {
-        setCalendars: (state, action: PayloadAction<Calendar[]>) => {
+        setCalendars: (state, action: PayloadAction<CalendarReducer[]>) => {
             state.calendars = action.payload;
             state.error = null;
             state.selectedCalendarIds = action.payload.map(calendar => calendar.id);
         },
-        addCalendar: (state, action: PayloadAction<Calendar>) => {
+        addCalendar: (state, action: PayloadAction<CalendarReducer>) => {
             state.calendars.push(action.payload);
             state.error = null;
             state.selectedCalendarIds.push(action.payload.id);
         },
-        updateCalendarAction: (state, action: PayloadAction<Calendar>) => {
+        updateCalendarAction: (state, action: PayloadAction<CalendarReducer>) => {
             const index = state.calendars.findIndex(
                 (calendar) => calendar.id === action.payload.id
             );

@@ -16,24 +16,33 @@ interface User {
 
 interface UserSelectorProps {
     users: User[];
-    currentUser: User;
     selectedUsers: User[];
     setSelectedUsers: (users: User[]) => void;
     showRoleSelector?: boolean;
+    creatorId?: number | null; // Новый пропс для ID создателя
 }
 
-export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUsers, showRoleSelector = true, }: UserSelectorProps) => {
+const UserSelector = ({
+                          users,
+                          selectedUsers,
+                          setSelectedUsers,
+                          showRoleSelector = true,
+                          creatorId = null,
+                      }: UserSelectorProps) => {
     const [search, setSearch] = useState("");
 
     const filteredUsers = (users ?? []).filter(
         (user) =>
             (user.fullName.toLowerCase().includes(search.toLowerCase()) ||
                 user.email.toLowerCase().includes(search.toLowerCase())) &&
-            !selectedUsers.some((u) => u.id === user.id)
+            !selectedUsers.some((u) => u.id === user.id) &&
+            user.id !== creatorId
     );
 
     const addUser = (user: User) => {
-        setSelectedUsers([...selectedUsers, { ...user, role: "viewer" }]);
+        if (user.id !== creatorId) {
+            setSelectedUsers([...selectedUsers, { ...user, role: "viewer" }]);
+        }
         setSearch("");
     };
 
@@ -42,10 +51,17 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
     };
 
     const removeUser = (id: number) => {
-        if (id !== currentUser.id) {
+        if (id !== creatorId) {
             setSelectedUsers(selectedUsers.filter((user) => user.id !== id));
         }
     };
+
+    const sortedSelectedUsers = [...selectedUsers].sort((a, b) => {
+        if (creatorId === null) return 0;
+        if (a.id === creatorId) return -1
+        if (b.id === creatorId) return 1
+        return 0;
+    });
 
     return (
         <div className="mt-1 border rounded-md p-3 h-46 relative">
@@ -86,11 +102,11 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
                         )}
                     </div>
                 )}
-                {selectedUsers.map((user, index) => (
+                {sortedSelectedUsers.map((user, index) => (
                     <div
                         key={user.id}
                         className={`flex justify-between items-center py-1 ${
-                            index !== selectedUsers.length - 1 ? "border-b" : ""
+                            index !== sortedSelectedUsers.length - 1 ? "border-b" : ""
                         }`}
                     >
                         <div className="p-1 flex items-center space-x-2">
@@ -107,7 +123,7 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
                         </div>
 
                         <div className="flex items-center space-x-2">
-                            {user.id !== currentUser.id ? (
+                            {user.id !== creatorId ? (
                                 showRoleSelector && (
                                     <Select
                                         value={user.role}
@@ -132,7 +148,7 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
                                     {UiMessages.GENERAL.OWNER}
                                 </span>
                             )}
-                            {user.id !== currentUser.id && (
+                            {user.id !== creatorId && (
                                 <Button variant="outline" size="icon" onClick={() => removeUser(user.id)}>
                                     ✕
                                 </Button>
@@ -144,3 +160,5 @@ export const UserSelector = ({ users, currentUser, selectedUsers, setSelectedUse
         </div>
     );
 };
+
+export default UserSelector;

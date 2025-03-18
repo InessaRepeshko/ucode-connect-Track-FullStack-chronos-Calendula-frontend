@@ -1,7 +1,6 @@
 import {
   BadgeCheck,
   Bell,
-  ChevronsUpDown,
   CreditCard,
   LogOut,
   Sparkles,
@@ -27,6 +26,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import {useDispatch} from "react-redux";
+import {useNavigate} from "react-router-dom";
+import {logoutUser} from "@/components/redux/actions/authActions.ts";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
+import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
 
 export function NavUser({
   user,
@@ -37,8 +41,19 @@ export function NavUser({
     profilePicture: string
   }
 }) {
-  const { isMobile } = useSidebar()
-  console.log(user.profilePicture)
+  const { isMobile } = useSidebar();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const result = await logoutUser(dispatch);
+    if (result.success) {
+      navigate("/login");
+      showSuccessToast(ToastStatusMessages.AUTH.LOGOUT_SUCCESS);
+    } else {
+      showErrorToasts(result.errors || ToastStatusMessages.AUTH.LOGOUT_FAILED);
+    }
+  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -46,17 +61,14 @@ export function NavUser({
           <DropdownMenuTrigger className="w-full">
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className=" py-2 px-7 gap-2 rounded-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-10 w-10 rounded-lg">
                 <AvatarImage src={`http://localhost:8080/profile-pictures/${user.profilePicture}`} alt={user.fullName} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid flex-1 text-left text-[16px] leading-tight">
                 <span className="truncate font-medium">{user.fullName}</span>
-                <span className="truncate text-xs">{user.email}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -100,7 +112,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
               <LogOut />
               Log out
             </DropdownMenuItem>

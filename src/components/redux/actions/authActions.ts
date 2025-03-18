@@ -1,6 +1,7 @@
-import axios, {AxiosError} from "axios";
+import api from "@/api/axios";
+import { AxiosError } from "axios";
 import { Dispatch } from "redux";
-import {setErrors, setRegistrationErrors, setUser} from "@/components/redux/reducers/authReducer.ts";
+import {logout, setErrors, setRegistrationErrors, setUser} from "@/components/redux/reducers/authReducer.ts";
 
 interface ErrorResponse {
     validationErrors?: { path: string; msg: string }[];
@@ -9,7 +10,7 @@ interface ErrorResponse {
 
 export const loginUser = async (credentials: { email: string; password: string }, dispatch: Dispatch) => {
     try {
-        const { data } = await axios.post("http://localhost:8080/api/auth/login", credentials);
+        const { data } = await api.post("/auth/login", credentials);
 
         localStorage.setItem("token", data.accessToken);
         dispatch(setUser({ authToken: data.accessToken, user: data.data }));
@@ -27,7 +28,7 @@ export const loginUser = async (credentials: { email: string; password: string }
 
 export const registerUser = async (credentials: { fullName: string; email: string; country: string; password: string; password_confirm: string }, dispatch: Dispatch) => {
     try {
-        await axios.post("http://localhost:8080/api/auth/register", credentials);
+        await api.post("/auth/register", credentials);
         dispatch(setRegistrationErrors([]));
         return { success: true, errors: {} };
     } catch (error) {
@@ -42,7 +43,7 @@ export const registerUser = async (credentials: { fullName: string; email: strin
 
 export const verifyEmail = async (confirmToken: string) => {
     try {
-        await axios.get(`http://localhost:8080/api/auth/confirm-email/${confirmToken}`);
+        await api.get(`/auth/confirm-email/${confirmToken}`);
         return { success: true, errors: {}  };
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
@@ -55,7 +56,7 @@ export const verifyEmail = async (confirmToken: string) => {
 
 export const passwordReset = async (email: string) => {
     try {
-        await axios.post("http://localhost:8080/api/auth/password-reset", { email });
+        await api.post("/auth/password-reset", { email });
         return { success: true, errors: {} };
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
@@ -68,7 +69,7 @@ export const passwordReset = async (email: string) => {
 
 export const confirmPasswordReset = async (confirmToken: string, password: string, password_confirm: string) => {
     try {
-        await axios.post(`http://localhost:8080/api/auth/password-reset/${confirmToken}`, { password, password_confirm });
+        await api.post(`/auth/password-reset/${confirmToken}`, { password, password_confirm });
         return { success: true, errors: {} };
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
@@ -79,5 +80,18 @@ export const confirmPasswordReset = async (confirmToken: string, password: strin
     }
 };
 
+export const logoutUser = async (dispatch: Dispatch) => {
+    try {
+        await api.post("/auth/logout", {});
+        dispatch(logout());
+        return { success: true, errors: {} };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        return {
+            success: false,
+            errors: axiosError.response?.data?.message || null,
+        };
+    }
+};
 
 

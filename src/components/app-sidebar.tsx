@@ -6,12 +6,10 @@ import {RootState} from "@/components/redux/store";
 
 import {Calendars} from "@/components/calendars";
 import {DatePicker} from "@/components/date-picker";
-import {NavUser} from "@/components/nav-user";
 import {DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem} from "@/components/ui/dropdown-menu";
 import {
     Sidebar,
     SidebarContent,
-    SidebarHeader,
     SidebarRail,
     SidebarSeparator,
 } from "@/components/ui/sidebar";
@@ -19,6 +17,7 @@ import {ManageCalendarModal} from "@/components/calendar/ManageCalendarModal.tsx
 import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {useNavigate} from "react-router-dom";
+import {Avatar, AvatarImage} from "@/components/ui/avatar.tsx";
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     const dispatch = useDispatch();
@@ -37,7 +36,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     }, [dispatch, calendars.length]);
 
 
-    // console.log(calendars);
+    console.log(calendars);
 
     const data = [
         {
@@ -81,6 +80,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 .map((calendar) => ({
                     id: calendar.id,
                     title: calendar.title,
+                    type: calendar.type,
                 }))
                 .sort((a, b) => a.id - b.id),
         },
@@ -89,9 +89,15 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     return (
         <>
             <Sidebar {...props}>
-                <SidebarHeader className="border-sidebar-border h-16 border-b">
-                    {user ? <NavUser user={user}/> : <span>Loading...</span>}
-                </SidebarHeader>
+                <header className="border-sidebar-border h-17 border-b flex items-center overflow-hidden">
+                    <Avatar className="ml-4 h-16 w-16 rounded-lg shrink-0">
+                        <AvatarImage src="/calendula.png" alt="Логотип" />
+                    </Avatar>
+                    <span className="text-[24px] font-medium  ">
+                        Calendula
+                    </span>
+                </header>
+
                 <DropdownMenu>
                     <div className="flex mt-4 px-4">
                         <DropdownMenuTrigger>

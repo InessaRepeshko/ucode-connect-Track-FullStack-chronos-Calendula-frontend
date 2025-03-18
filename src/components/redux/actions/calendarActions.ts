@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import api from "@/api/axios";
+import { AxiosError } from "axios";
 import { Dispatch } from "redux";
 import {
     setError,
@@ -21,7 +22,7 @@ interface CalendarPayload {
 export const createCalendar = async (dispatch: Dispatch, payload: CalendarPayload, participants: { userId: number; role: string }[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.post("http://localhost:8080/api/calendars", { ...payload, participants }, {
+        const { data } = await api.post("/calendars", { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` }
         });
         dispatch(addCalendar(data.data));
@@ -39,8 +40,8 @@ export const createCalendar = async (dispatch: Dispatch, payload: CalendarPayloa
 export const updateCalendar = async (dispatch: Dispatch, calendar_id: number, payload: CalendarPayload, participants: { userId: number; role: string }[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.patch(
-            `http://localhost:8080/api/calendars/${calendar_id}`, { ...payload, participants }, {
+        const { data } = await api.patch(
+            `/calendars/${calendar_id}`, { ...payload, participants }, {
                 headers: { Authorization: `Bearer ${token}`
                 }});
 
@@ -59,7 +60,7 @@ export const updateCalendar = async (dispatch: Dispatch, calendar_id: number, pa
 export const getCalendars = async (dispatch: Dispatch) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.get("http://localhost:8080/api/calendars", {
+        const { data } = await api.get("/calendars", {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -73,7 +74,7 @@ export const getCalendars = async (dispatch: Dispatch) => {
 export const getCalendarById = async (dispatch: Dispatch, calendar_id: number) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.get(`http://localhost:8080/api/calendars/${calendar_id}`, {
+        const { data } = await api.get(`/calendars/${calendar_id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         return { success: true, data: data.data, errors: {} };
@@ -90,7 +91,7 @@ export const getCalendarById = async (dispatch: Dispatch, calendar_id: number) =
 export const deleteCalendar = async (dispatch: Dispatch, calendar_id: number) => {
     try {
         const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:8080/api/calendars/${calendar_id}`, {
+        await api.delete(`/calendars/${calendar_id}`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

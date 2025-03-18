@@ -1,4 +1,5 @@
-import axios, {AxiosError} from "axios";
+import api from "@/api/axios";
+import { AxiosError } from "axios";
 import { Dispatch } from "redux";
 import {setError, setUsers} from "@/components/redux/reducers/userReducer.ts";
 
@@ -10,7 +11,7 @@ interface ErrorResponse {
 export const getUsers = async (dispatch: Dispatch) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.get("http://localhost:8080/api/users", {
+        const { data } = await api.get("/users", {
             headers: { Authorization: `Bearer ${token}` }
         });
         dispatch(setUsers(data.data));

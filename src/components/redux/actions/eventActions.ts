@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import api from "@/api/axios";
+import { AxiosError } from "axios";
 import { Dispatch } from "redux";
 import {
     setError,
@@ -26,7 +27,7 @@ export interface EventPayload {
 export const getEvents = async (dispatch: Dispatch) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.get("http://localhost:8080/api/events", {
+        const { data } = await api.get("/events", {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -37,10 +38,23 @@ export const getEvents = async (dispatch: Dispatch) => {
     }
 };
 
+export const getEventById = async (eventId: number) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.get(`/events/${eventId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return { success: true, data: data.data };
+    } catch (error) {
+        const axiosError = error as AxiosError<any>;
+        return { success: false, errors: axiosError.response?.data?.message };
+    }
+};
+
 export const createEvent = async (dispatch: Dispatch, payload: EventPayload, participants: { userId: number}[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.post("http://localhost:8080/api/events", { ...payload, participants }, {
+        const { data } = await api.post("/events", { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -59,7 +73,7 @@ export const createEvent = async (dispatch: Dispatch, payload: EventPayload, par
 export const updateEvent = async (dispatch: Dispatch, eventId: number, payload: EventPayload, participants: { userId: number}[]) => {
     try {
         const token = localStorage.getItem("token");
-        const { data } = await axios.patch(`http://localhost:8080/api/events/${eventId}`, { ...payload, participants }, {
+        const { data } = await api.patch(`/events/${eventId}`, { ...payload, participants }, {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -70,7 +84,7 @@ export const updateEvent = async (dispatch: Dispatch, eventId: number, payload: 
         dispatch(setError(axiosError.response?.data?.message || null));
         return {
             success: false,
-            errors: axiosError.response?.data?.validationErrors,
+            errors: axiosError.response?.data?.validationErrors /*|| axiosError.response?.data?.message*/,
         };
     }
 };
@@ -78,7 +92,7 @@ export const updateEvent = async (dispatch: Dispatch, eventId: number, payload: 
 export const deleteEvent = async (dispatch: Dispatch, eventId: number) => {
     try {
         const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:8080/api/events/${eventId}`, {
+        await api.delete(`/events/${eventId}`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

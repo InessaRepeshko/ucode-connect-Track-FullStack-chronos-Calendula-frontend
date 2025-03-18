@@ -13,9 +13,9 @@ import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
-import {UserSelector} from "@/components/utils/UserSelector.tsx";
 import {BellRing, BookmarkCheck, CalendarFold, Video} from "lucide-react";
 import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
+import UserSelector from "@/components/utils/UserSelector.tsx";
 
 interface User {
     id: number;
@@ -170,10 +170,10 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
 
                 <UserSelector
                     users={users}
-                    currentUser={currentUser}
                     selectedUsers={selectedUsers}
                     setSelectedUsers={setSelectedUsers}
                     showRoleSelector={false}
+                    creatorId={currentUser.id}
                 />
 
                 <div className="flex justify-end space-x-2 mt-4">

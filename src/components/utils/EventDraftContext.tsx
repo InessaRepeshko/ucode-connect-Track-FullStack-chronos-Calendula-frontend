@@ -10,13 +10,18 @@ interface User {
 
 interface EventDraft {
     title?: string;
+    description?: string;
+    category?: string;
+    type?: string;
     startDate?: Date;
     endDate?: Date;
     startTime?: string;
     endTime?: string;
-    type?: string;
     calendarId?: number;
+    color?: string;
     selectedUsers?: User[];
+    eventId?: string;
+    creatorId?: number;
 }
 
 const EventDraftContext = createContext<{

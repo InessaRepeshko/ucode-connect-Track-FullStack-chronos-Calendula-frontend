@@ -2,6 +2,8 @@ export const ToastStatusMessages = {
     AUTH: {
         LOGIN_SUCCESS: "Successful Login.",
         LOGIN_FAILED: "Login failed.",
+        LOGOUT_SUCCESS: "Successful Logout.",
+        LOGOUT_FAILED: "Logout failed.",
         PASSWORD_RESET_SUCCESS: "Password reset link sent to your email.",
         PASSWORD_RESET_FAILED: "Password reset link has not been sent.",
         PASSWORD_CHANGED_SUCCESS: "Password has been changed.",
