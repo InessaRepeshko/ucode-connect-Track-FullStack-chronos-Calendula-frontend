@@ -1,5 +1,6 @@
-import { Popover, PopoverContent } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import {JSX} from "react";
+import {Popover, PopoverContent} from "@/components/ui/popover";
+import {Button} from "@/components/ui/button";
 import {
     Pencil,
     Trash2,
@@ -12,8 +13,8 @@ import {
     UsersRound,
     Check, Video, BellRing, BookmarkCheck, House, CalendarFold
 } from "lucide-react";
-import { format } from "date-fns";
-import { Avatar, AvatarImage } from "@/components/ui/avatar.tsx";
+import {format} from "date-fns";
+import {Avatar, AvatarImage} from "@/components/ui/avatar.tsx";
 
 interface User {
     id: number;
@@ -35,6 +36,7 @@ interface EventDetailsPopoverProps {
         type?: string;
         creationByUserId: number;
         calendarTitle?: string;
+        calendarType?: string;
         creator: User;
         participants: User[];
     };
@@ -64,16 +66,18 @@ export default function EventDetailsPopover({
         endDateTime.getHours() === 23 &&
         endDateTime.getMinutes() === 59;
 
+    const isSpecialCalendar = event.calendarType === "holidays" || event.calendarType === "birthdays";
+
     const typeIcons: { [key: string]: JSX.Element } = {
         meeting: <Video strokeWidth={3} className="w-4 h-4 mr-1 mt-1"/>,
-        reminder: <BellRing strokeWidth={3} className="w-4 h-4 mr-1" />,
-        task: <BookmarkCheck strokeWidth={3} className="w-4 h-4 mr-1" />,
+        reminder: <BellRing strokeWidth={3} className="w-4 h-4 mr-1"/>,
+        task: <BookmarkCheck strokeWidth={3} className="w-4 h-4 mr-1"/>,
     };
 
     const categoryIcons: { [key: string]: JSX.Element } = {
-        work: <BriefcaseBusiness strokeWidth={3} className="w-4 h-4 mr-1" />,
-        home: <House strokeWidth={3} className="w-4 h-4 mr-1" />,
-        hobby: <Palette strokeWidth={3} className="w-4 h-4 mr-1" />,
+        work: <BriefcaseBusiness strokeWidth={3} className="w-4 h-4 mr-1"/>,
+        home: <House strokeWidth={3} className="w-4 h-4 mr-1"/>,
+        hobby: <Palette strokeWidth={3} className="w-4 h-4 mr-1"/>,
     };
 
     const participantsWithoutCreator = event.participants.filter(
@@ -83,8 +87,8 @@ export default function EventDetailsPopover({
     const totalParticipants = event.participants.length;
 
     const statusIcons: { [key: string]: JSX.Element } = {
-        yes: <Check className="w-4 h-4 text-green-500 bg-green-100 rounded-lg border" />,
-        no: <X className="w-4 h-4 text-red-500 bg-red-100 rounded-lg border" />,
+        yes: <Check className="w-4 h-4 text-green-500 bg-green-100 rounded-lg border"/>,
+        no: <X className="w-4 h-4 text-red-500 bg-red-100 rounded-lg border"/>,
         maybe: (
             <div className="bg-gray-100 rounded-lg w-4 h-4 flex items-center justify-center border">
                 <span className="text-black text-sm font-medium">?</span>
@@ -101,7 +105,7 @@ export default function EventDetailsPopover({
     };
 
     const sortedParticipants = participantsWithoutCreator.sort((a, b) => {
-        const order = { yes: 0, no: 1, maybe: 2, undefined: 3 };
+        const order = {yes: 0, no: 1, maybe: 2, undefined: 3};
         const statusA = a.attendanceStatus || "undefined";
         const statusB = b.attendanceStatus || "undefined";
         return order[statusA] - order[statusB];
@@ -118,23 +122,23 @@ export default function EventDetailsPopover({
     return (
         <Popover open={true} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
-                className=" w-[382px] h-auto p-4 space-y-3 bg-white border rounded-lg shadow-lg"
-                style={{ position: "absolute", top: position.y, left: position.x}}>
+                className=" w-[385px] h-auto p-4 space-y-3 bg-white border rounded-lg shadow-lg"
+                style={{position: "absolute", top: position.y, left: position.x}}>
                 <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">{event.title}</h3>
                     <div className="flex gap-2">
                         {isCreator && (
                             <>
                                 <Button variant="ghost" size="sm" onClick={onEdit}>
-                                    <Pencil className="w-4 h-4" />
+                                    <Pencil className="w-4 h-4"/>
                                 </Button>
                                 <Button variant="ghost" size="sm" onClick={onDelete}>
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-4 h-4"/>
                                 </Button>
                             </>
                         )}
                         <Button variant="ghost" size="sm" onClick={onClose}>
-                            <X className="w-4 h-4" />
+                            <X className="w-4 h-4"/>
                         </Button>
                     </div>
                 </div>
@@ -158,32 +162,34 @@ export default function EventDetailsPopover({
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                         {event.type && (
                             <div className="flex items-center">
-                                {typeIcons[event.type] || <Calendar className="w-4 h-4 mr-1" />}
-                                <span className="px-1">{event.type}</span>
+                                {typeIcons[event.type] || <Calendar className="w-4 h-4 mr-1"/>}
+                                <span className="px-1 capitalize">{event.type}</span>
                             </div>
                         )}
                         {event.category && (
                             <div className="flex items-center">
-                                {categoryIcons[event.category] || <Briefcase className="w-4 h-4 mr-1" />}
-                                <span className="px-1">{event.category}</span>
+                                {categoryIcons[event.category] || <Briefcase className="w-4 h-4 mr-1"/>}
+                                <span className="px-1 capitalize">{event.category}</span>
                             </div>
                         )}
                         {event.calendarTitle && (
                             <div className="flex items-center text-sm text-gray-600">
-                                <CalendarFold strokeWidth={3} className="w-4 h-4 mr-1" />
+                                <CalendarFold strokeWidth={3} className="w-4 h-4 mr-1"/>
                                 <span className="px-1">{event.calendarTitle}</span>
                             </div>
                         )}
                     </div>
                 )}
-
-                <div className="flex items-center text-sm text-gray-600">
-                    <UsersRound strokeWidth={3} className="w-4 h-4 mr-1 mt-1 " />
-                    <div>
-                        <div className="flex items-center px-1">
-                            <span className="font-medium">{totalParticipants} participant{totalParticipants > 1 ? "s" : ""}</span>
-                        </div>
-                        <div className="flex flex-wrap  -mt-1 px-1">
+                {!isSpecialCalendar && (
+                    <>
+                        <div className="flex items-center text-sm text-gray-600">
+                            <UsersRound strokeWidth={3} className="w-4 h-4 mr-1 mt-1 "/>
+                            <div>
+                                <div className="flex items-center px-1">
+                                    <span
+                                        className="font-medium">{totalParticipants} participant{totalParticipants > 1 ? "s" : ""}</span>
+                                </div>
+                                <div className="flex flex-wrap  -mt-1 px-1">
                             <span className="flex items-center">
                                 {[
                                     statusCounts.yes > 0 ? `${statusCounts.yes} yes` : null,
@@ -194,70 +200,72 @@ export default function EventDetailsPopover({
                                     .filter(Boolean)
                                     .join(", ")}
                             </span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div
-                    className={`space-y-1 custom-scroll ${
-                        sortedParticipants.length > 1
-                            ? "max-h-[121px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
-                            : ""
-                    }`}>
-                    <div className="flex items-center space-x-2 text-gray-600 relative">
-                        <div className="relative">
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage
-                                    src={`http://localhost:8080/profile-pictures/${event.creator.profilePicture}`}
-                                    alt={event.creator.fullName}
-                                />
-                            </Avatar>
-                            {/* Статус создателя */}
-                            {event.creator.attendanceStatus && (
-                                <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
-                                    {statusIcons[event.creator.attendanceStatus]}
+                        <div
+                            className={`space-y-1 custom-scroll ${
+                                sortedParticipants.length > 1
+                                    ? "max-h-[121px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+                                    : ""
+                            }`}>
+                            <div className="flex items-center space-x-2 text-gray-600 relative">
+                                <div className="relative">
+                                    <Avatar className="h-8 w-8 rounded-lg">
+                                        <AvatarImage
+                                            src={`http://localhost:8080/profile-pictures/${event.creator.profilePicture}`}
+                                            alt={event.creator.fullName}
+                                        />
+                                    </Avatar>
+                                    {/* Статус создателя */}
+                                    {event.creator.attendanceStatus && (
+                                        <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
+                                            {statusIcons[event.creator.attendanceStatus]}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-1">
+                                        <p className="text-sm font-medium">{event.creator.fullName}</p>
+                                        <Crown className="w-4 h-4 text-yellow-500"/>
+                                    </div>
+                                    <p className="text-[12px] text-gray-500">{event.creator.email}</p>
+                                </div>
+                            </div>
+
+                            {sortedParticipants.length > 0 && (
+                                <div className="space-y-1">
+                                    {sortedParticipants.map((participant) => (
+                                        <div
+                                            key={participant.id}
+                                            className="flex items-center space-x-2 text-gray-600 relative"
+                                        >
+                                            <div className="relative">
+                                                <Avatar className="h-8 w-8 rounded-lg">
+                                                    <AvatarImage
+                                                        src={`http://localhost:8080/profile-pictures/${participant.profilePicture}`}
+                                                        alt={participant.fullName}
+                                                    />
+                                                </Avatar>
+                                                {participant.attendanceStatus && (
+                                                    <div
+                                                        className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
+                                                        {statusIcons[participant.attendanceStatus]}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium">{participant.fullName}</p>
+                                                <p className="text-[12px] text-gray-500">{participant.email}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
-                        <div className="flex flex-col">
-                            <div className="flex items-center gap-1">
-                                <p className="text-sm font-medium">{event.creator.fullName}</p>
-                                <Crown className="w-4 h-4 text-yellow-500" />
-                            </div>
-                            <p className="text-[12px] text-gray-500">{event.creator.email}</p>
-                        </div>
-                    </div>
-
-                    {sortedParticipants.length > 0 && (
-                        <div className="space-y-1">
-                            {sortedParticipants.map((participant) => (
-                                <div
-                                    key={participant.id}
-                                    className="flex items-center space-x-2 text-gray-600 relative"
-                                >
-                                    <div className="relative">
-                                        <Avatar className="h-8 w-8 rounded-lg">
-                                            <AvatarImage
-                                                src={`http://localhost:8080/profile-pictures/${participant.profilePicture}`}
-                                                alt={participant.fullName}
-                                            />
-                                        </Avatar>
-                                        {participant.attendanceStatus && (
-                                            <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
-                                                {statusIcons[participant.attendanceStatus]}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium">{participant.fullName}</p>
-                                        <p className="text-[12px] text-gray-500">{participant.email}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
+                    </>
+                )}
                 {currentUserId && event.participants.some((p) => p.id === currentUserId) && !isCreator && (
                     <div className=" translate-y-[15%] rounded-lg  flex items-center gap-3">
                         <span className="text-[15px] text-gray-700">Will you attend?</span>
@@ -268,7 +276,7 @@ export default function EventDetailsPopover({
                                 onClick={() => handleAttendanceChange("yes")}
                                 className="flex items-center gap-1"
                             >
-                                <Check className="w-4 h-4" />
+                                <Check className="w-4 h-4"/>
                                 Yes
                             </Button>
                             <Button
@@ -277,7 +285,7 @@ export default function EventDetailsPopover({
                                 onClick={() => handleAttendanceChange("no")}
                                 className="flex items-center gap-1"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4"/>
                                 No
                             </Button>
                             <Button

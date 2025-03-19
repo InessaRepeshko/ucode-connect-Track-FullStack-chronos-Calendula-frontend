@@ -1,9 +1,9 @@
-import { useState } from "react";
+import {JSX, useState} from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage } from "@/components/ui/avatar.tsx";
-import { Crown } from "lucide-react";
+import {Check, Crown, X} from "lucide-react";
 import { UiMessages } from "@/constants/uiMessages.ts";
 
 interface User {
@@ -12,6 +12,7 @@ interface User {
     email: string;
     profilePicture: string;
     role: "viewer" | "member" | "owner";
+    attendanceStatus?: "yes" | "no" | "maybe";
 }
 
 interface UserSelectorProps {
@@ -19,7 +20,7 @@ interface UserSelectorProps {
     selectedUsers: User[];
     setSelectedUsers: (users: User[]) => void;
     showRoleSelector?: boolean;
-    creatorId?: number | null; // Новый пропс для ID создателя
+    creatorId?: number | null;
 }
 
 const UserSelector = ({
@@ -56,6 +57,16 @@ const UserSelector = ({
         }
     };
 
+    const statusIcons: { [key: string]: JSX.Element } = {
+        yes: <Check className="w-4 h-4 text-green-500 bg-green-100 rounded-lg border" />,
+        no: <X className="w-4 h-4 text-red-500 bg-red-100 rounded-lg border" />,
+        maybe: (
+            <div className="bg-gray-100 rounded-lg w-4 h-4 flex items-center justify-center border">
+                <span className="text-black text-sm font-medium">?</span>
+            </div>
+        ),
+    };
+
     const sortedSelectedUsers = [...selectedUsers].sort((a, b) => {
         if (creatorId === null) return 0;
         if (a.id === creatorId) return -1
@@ -84,12 +95,19 @@ const UserSelector = ({
                                     onClick={() => addUser(user)}
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <Avatar className="h-8 w-8 rounded-lg">
-                                            <AvatarImage
-                                                src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
-                                                alt={user.fullName}
-                                            />
-                                        </Avatar>
+                                        <div className="relative">
+                                            <Avatar className="h-8 w-8 rounded-lg">
+                                                <AvatarImage
+                                                    src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
+                                                    alt={user.fullName}
+                                                />
+                                            </Avatar>
+                                            {user.attendanceStatus && (
+                                                <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
+                                                    {statusIcons[user.attendanceStatus]}
+                                                </div>
+                                            )}
+                                        </div>
                                         <div>
                                             <p className="font-medium">{user.fullName}</p>
                                             <p className="text-sm text-gray-500">{user.email}</p>
@@ -110,12 +128,19 @@ const UserSelector = ({
                         }`}
                     >
                         <div className="p-1 flex items-center space-x-2">
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage
-                                    src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
-                                    alt={user.fullName}
-                                />
-                            </Avatar>
+                            <div className="relative">
+                                <Avatar className="h-8 w-8 rounded-lg">
+                                    <AvatarImage
+                                        src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
+                                        alt={user.fullName}
+                                    />
+                                </Avatar>
+                                {user.attendanceStatus && (
+                                    <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
+                                        {statusIcons[user.attendanceStatus]}
+                                    </div>
+                                )}
+                            </div>
                             <div>
                                 <p className="font-medium">{user.fullName}</p>
                                 <p className="text-sm text-gray-500">{user.email}</p>

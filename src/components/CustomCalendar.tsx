@@ -143,6 +143,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 email: participant.email,
                 profilePicture: participant.profilePicture,
                 role: participant.role === "user" ? "member" : participant.role,
+                attendanceStatus: participant.attendanceStatus,
             }));
 
             const draftData = {
@@ -213,17 +214,24 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
             const eventEl = document.querySelector(`.fc-event[data-event-id="${eventId}"]`);
             if (eventEl) {
                 const rect = eventEl.getBoundingClientRect();
-                const popoverWidth = tempEventId ? 430 : 300;
-                const popoverHeight = tempEventId ? 390 : 200;
+                const popoverWidth = tempEventId ? 430 : 385;
+                const popoverHeight = tempEventId ? 390 : 280;
                 const screenWidth = window.innerWidth;
                 const screenHeight = window.innerHeight;
                 const offset = 10;
 
-                const rightEdge = rect.right + popoverWidth + offset;
-                const isOverflowingX = rightEdge > screenWidth;
-                const xPosition = isOverflowingX
-                    ? rect.left + window.scrollX - popoverWidth - offset
-                    : rect.right + window.scrollX + offset;
+                let xPosition;
+                if (currentView === "timeGridDay") {
+                    // Центрируем поповер по горизонтали в дневном виде
+                    xPosition = (screenWidth - popoverWidth) / 2 + window.scrollX;
+                } else {
+                    // Оригинальная логика для других видов
+                    const rightEdge = rect.right + popoverWidth + offset;
+                    const isOverflowingX = rightEdge > screenWidth;
+                    xPosition = isOverflowingX
+                        ? rect.left + window.scrollX - popoverWidth - offset
+                        : rect.right + window.scrollX + offset;
+                }
 
                 const eventHeight = rect.height;
                 const eventCenter = rect.top + eventHeight / 2;
@@ -249,7 +257,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 setIsPositionReady(true);
             }
         }
-    }, [tempEventId, selectedEvent]);
+    }, [tempEventId, selectedEvent, currentView]); // Добавляем currentView в зависимости
 
     const handleScrollToTime = () => {
         const calendarApi = calendarRef.current?.getApi();
@@ -317,15 +325,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                                 {displayText}
                             </Toggle>
                         );
-                    }}
-                    dateClick={(info) => {
-                        const calendarApi = calendarRef.current?.getApi();
-                        if (calendarApi) {
-                            const currentViewType = calendarApi.view.type;
-                            if (currentViewType === "timeGridWeek" || currentViewType === "dayGridMonth") {
-                                calendarApi.changeView("timeGridDay", info.dateStr);
-                            }
-                        }
                     }}
                     dayHeaderFormat={dayHeaderFormat}
                     datesSet={(arg) => {
@@ -405,6 +404,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
 
                                 creationByUserId: response.data.creationByUserId,
                                 calendarTitle: response.data.calendar.title,
+                                calendarType: response.data.calendar.type,
                                 creator: {
                                     id: response.data.creator.id,
                                     fullName: response.data.creator.fullName,

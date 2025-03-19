@@ -115,6 +115,12 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
         }
     }, [dispatch]);
 
+    const editableCalendars = calendars.filter((calendar) =>
+            calendar.participants.some(
+                (p) => p.userId === currentUser.id && p.role !== "viewer"
+            )
+        );
+
     return (
         <Popover open={Boolean(selectedDate)} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
@@ -148,7 +154,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                             </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                            {calendars.map((calendar) => (
+                            {editableCalendars.map((calendar) => (
                                 <SelectItem key={calendar.id} value={String(calendar.id)}>
                                     {calendar.title}
                                 </SelectItem>

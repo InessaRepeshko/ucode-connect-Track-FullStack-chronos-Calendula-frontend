@@ -47,6 +47,7 @@ interface User {
     email: string;
     profilePicture: string;
     role: "viewer" | "member" | "owner";
+    attendanceStatus?: "yes" | "no" | "maybe";
 }
 
 const CreateEventPage = () => {
@@ -93,10 +94,14 @@ const CreateEventPage = () => {
             setStartTime(draft.startTime || "");
             setEndTime(draft.endTime || "");
             setAllDay(draft.startTime === "00:00" && draft.endTime === "23:59");
-            setSelectedUsers(draft.selectedUsers || []);
+            setSelectedUsers(
+                draft.selectedUsers?.map((user: User) => ({
+                    ...user,
+                    attendanceStatus: user.attendanceStatus,
+                })) || []
+            );
             setCreatorId(draft.creatorId || currentUser.id);
         } else if (draft?.calendarId !== undefined) {
-            // Режим создания с частичным draft
             setIsEditMode(false);
             setTitle(draft.title || "");
             setStartDate(draft.startDate);
@@ -108,7 +113,6 @@ const CreateEventPage = () => {
             setSelectedUsers(draft.selectedUsers || []);
             setCreatorId(currentUser.id);
         } else if (calendars.length > 0 && calendarId === null) {
-            // Режим создания без draft
             setIsEditMode(false);
             const mainCalendar = calendars.find((calendar) => calendar.type === "main");
             if (mainCalendar) {
@@ -214,7 +218,7 @@ const CreateEventPage = () => {
     };
 
     const editableCalendars = isEditMode
-        ? calendars // В режиме редактирования показываем все календари (но поле disabled)
+        ? calendars
         : calendars.filter((calendar) =>
             calendar.participants.some(
                 (p) => p.userId === currentUser.id && p.role !== "viewer"

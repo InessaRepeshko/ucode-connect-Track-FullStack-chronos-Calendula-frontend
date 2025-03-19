@@ -6,6 +6,7 @@ interface User {
     email: string;
     profilePicture: string;
     role: "viewer" | "member" | "owner";
+    attendanceStatus?: "yes" | "no" | "maybe";
 }
 
 interface EventDraft {

@@ -37,8 +37,8 @@ interface CalendarItem {
     id: number;
     title: string;
     type: string;
-    creationByUserId: string;
-    role: "owner" | "member" | "viewer";
+    creationByUserId?: string;
+    role?: "owner" | "member" | "viewer";
 }
 
 interface CalendarsProps {
