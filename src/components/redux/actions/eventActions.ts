@@ -107,3 +107,42 @@ export const deleteEvent = async (dispatch: Dispatch, eventId: number) => {
         };
     }
 };
+
+export const joinEvent = async (eventId: number) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.patch(`/events/${eventId}/join/`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return { success: true, data: data.data };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        return { success: false, error: axiosError.response?.data?.message || null };
+    }
+};
+
+export const leaveEvent = async (eventId: number) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.patch(`/events/${eventId}/leave/`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return { success: true, data: data.data };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        return { success: false, error: axiosError.response?.data?.message || null };
+    }
+};
+
+export const tentativeEvent = async (eventId: number) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.patch(`/events/${eventId}/tentative/`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return { success: true, data: data.data };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        return { success: false, error: axiosError.response?.data?.message || null };
+    }
+};

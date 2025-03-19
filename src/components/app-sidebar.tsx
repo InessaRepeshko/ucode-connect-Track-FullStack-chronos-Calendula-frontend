@@ -90,8 +90,8 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
         <>
             <Sidebar {...props}>
                 <header className="border-sidebar-border h-17 border-b flex items-center overflow-hidden">
-                    <Avatar className="ml-4 h-16 w-16 rounded-lg shrink-0">
-                        <AvatarImage src="/calendula.png" alt="Логотип" />
+                    <Avatar className="ml-4 h-13 w-13 rounded-lg shrink-0">
+                        <AvatarImage src="/logo_favicon.png" alt="Логотип" />
                     </Avatar>
                     <span className="text-[24px] font-medium  ">
                         Calendula

@@ -8,7 +8,7 @@ import CreateEventPopover from "@/components/event/CreateEventPopover.tsx";
 import EventDetailsPopover from "@/components/event/EventDetailsPopover.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "@/components/redux/store.ts";
-import { getEventById } from "@/components/redux/actions/eventActions.ts";
+import {getEventById, joinEvent, leaveEvent, tentativeEvent} from "@/components/redux/actions/eventActions.ts";
 import { useNavigate } from "react-router-dom";
 import { useEventDraft } from "@/components/utils/EventDraftContext.tsx";
 import { format } from "date-fns";
@@ -138,11 +138,11 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
             console.log("Selected Event:", selectedEvent);
 
             const formattedUsers = selectedEvent.participants.map((participant: any) => ({
-                id: participant.user.id,
-                fullName: participant.user.fullName,
-                email: participant.user.email,
-                profilePicture: participant.user.profilePicture,
-                role: participant.user.role === "user" ? "member" : participant.user.role,
+                id: participant.id,
+                fullName: participant.fullName,
+                email: participant.email,
+                profilePicture: participant.profilePicture,
+                role: participant.role === "user" ? "member" : participant.role,
             }));
 
             const draftData = {
@@ -174,6 +174,37 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
         console.log("Delete event:", selectedEvent);
         setEvents((prevEvents) => prevEvents.filter((e) => e.id !== selectedEvent.id));
         handleEventClickClose();
+    };
+
+    const handleAttendanceChange = async (userId: number, status: "yes" | "no" | "maybe" | undefined) => {
+        if (selectedEvent) {
+            const eventId = parseInt(selectedEvent.id);
+            let result;
+
+            const updatedParticipants = selectedEvent.participants.map((p: any) =>
+                p.id === userId ? { ...p, attendanceStatus: status } : p
+            );
+            setSelectedEvent({ ...selectedEvent, participants: updatedParticipants });
+
+            switch (status) {
+                case "yes":
+                    result = await joinEvent(eventId);
+                    break;
+                case "no":
+                    result = await leaveEvent(eventId);
+                    break;
+                case "maybe":
+                    result = await tentativeEvent(eventId);
+                    break;
+                default:
+                    console.warn("No status provided, skipping server update");
+                    return;
+            }
+
+            if (!result.success) {
+                setSelectedEvent(selectedEvent);
+            }
+        }
     };
 
     useEffect(() => {
@@ -235,7 +266,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
         if (calendarRef.current?.getApi()) {
             handleScrollToTime();
         }
-    }, []); // Убрали рекурсивный setTimeout
+    }, []);
 
     return (
         <div className="p-4 bg-white rounded-lg shadow-md relative h-[calc(95vh-2rem)]">
@@ -254,11 +285,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     eventDidMount={(info) => {
                         info.el.setAttribute("data-event-id", info.event.id);
                     }}
-                    headerToolbar={{
-                        left: "",
-                        center: "",
-                        right: "",
-                    }}
+                    headerToolbar={false}
                     height="100%"
                     slotLabelFormat={{
                         hour: "2-digit",
@@ -375,8 +402,23 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                                 type: response.data.type,
                                 calendarId: response.data.calendarId,
                                 color: response.data.color,
-                                participants: response.data.participants || [],
+
                                 creationByUserId: response.data.creationByUserId,
+                                calendarTitle: response.data.calendar.title,
+                                creator: {
+                                    id: response.data.creator.id,
+                                    fullName: response.data.creator.fullName,
+                                    email: response.data.creator.email,
+                                    profilePicture: response.data.creator.profilePicture,
+                                    attendanceStatus: response.data.participants.find((p: any) => p.userId === response.data.creator.id)?.attendanceStatus,
+                                },
+                                participants: response.data.participants.map((p: any) => ({
+                                    id: p.user.id,
+                                    fullName: p.user.fullName,
+                                    email: p.user.email,
+                                    profilePicture: p.user.profilePicture,
+                                    attendanceStatus: p.attendanceStatus,
+                                })),
                             });
                             setTempEventId(null);
                             setIsPositionReady(false);
@@ -436,6 +478,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     onDelete={handleDeleteEvent}
                     onClose={handleEventClickClose}
                     currentUserId={currentUser?.id}
+                    onAttendanceChange={handleAttendanceChange}
                 />
             )}
         </div>

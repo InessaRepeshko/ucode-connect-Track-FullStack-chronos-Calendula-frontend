@@ -61,7 +61,7 @@ export function NavUser({
           <DropdownMenuTrigger className="w-full">
             <SidebarMenuButton
               size="lg"
-              className=" py-2 px-7 gap-2 rounded-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="cursor-pointer py-2 px-7 gap-2 rounded-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-10 w-10 rounded-lg">
                 <AvatarImage src={`http://localhost:8080/profile-pictures/${user.profilePicture}`} alt={user.fullName} />

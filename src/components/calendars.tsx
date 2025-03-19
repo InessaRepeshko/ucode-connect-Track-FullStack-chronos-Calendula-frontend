@@ -176,7 +176,7 @@ export function Calendars({calendars}: CalendarsProps) {
 
                                                                     {isMemberOrViewer && (
                                                                         <DropdownMenuItem
-                                                                            className="text-blue-500 cursor-pointer"
+                                                                            className="text-red-500 cursor-pointer"
                                                                             onClick={() => handleUnsubscribeClick(item.id)}
                                                                         >
                                                                             Unsubscribe
