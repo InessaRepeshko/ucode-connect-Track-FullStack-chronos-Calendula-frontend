@@ -26,5 +26,7 @@ export const ToastStatusMessages = {
         CREATE_FAILED: "Event creation failed.",
         UPDATE_SUCCESS: "Successful update event.",
         UPDATE_FAILED: "Event update failed.",
+        DELETE_SUCCESS: "Successful delete event.",
+        DELETE_FAILED: "Event delete failed.",
     }
 };

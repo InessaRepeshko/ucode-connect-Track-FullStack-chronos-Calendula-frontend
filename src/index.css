@@ -145,3 +145,11 @@ body {
 .custom-scroll::-webkit-scrollbar-button {
   display: none;
 }
+
+
+@layer base {
+  [data-radix-tooltip-content]::before,
+  [data-radix-tooltip-content]::after {
+    display: none !important;
+  }
+}

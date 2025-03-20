@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import {format} from "date-fns";
 import {Avatar, AvatarImage} from "@/components/ui/avatar.tsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 interface User {
     id: number;
@@ -125,7 +126,18 @@ export default function EventDetailsPopover({
                 className=" w-[385px] h-auto p-4 space-y-3 bg-white border rounded-lg shadow-lg"
                 style={{position: "absolute", top: position.y, left: position.x}}>
                 <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">{event.title}</h3>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <h3 className="text-lg font-semibold truncate max-w-[280px]">
+                                    {event.title}
+                                </h3>
+                            </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{event.title}</p>
+                                </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                     <div className="flex gap-2">
                         {isCreator && (
                             <>
@@ -173,10 +185,19 @@ export default function EventDetailsPopover({
                             </div>
                         )}
                         {event.calendarTitle && (
-                            <div className="flex items-center text-sm text-gray-600">
-                                <CalendarFold strokeWidth={3} className="w-4 h-4 mr-1"/>
-                                <span className="px-1">{event.calendarTitle}</span>
-                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <CalendarFold strokeWidth={3} className="w-4 h-4 mr-1 flex-shrink-0" />
+                                            <span className="px-1 truncate max-w-[150px]">{event.calendarTitle}</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Calendar: {event.calendarTitle}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                     </div>
                 )}
@@ -218,7 +239,6 @@ export default function EventDetailsPopover({
                                             alt={event.creator.fullName}
                                         />
                                     </Avatar>
-                                    {/* Статус создателя */}
                                     {event.creator.attendanceStatus && (
                                         <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
                                             {statusIcons[event.creator.attendanceStatus]}

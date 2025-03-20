@@ -6,13 +6,39 @@ import { useState, useEffect, useRef } from "react";
 import "@/components/styles/fullcalendar.css";
 import CreateEventPopover from "@/components/event/CreateEventPopover.tsx";
 import EventDetailsPopover from "@/components/event/EventDetailsPopover.tsx";
-import { useSelector } from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import { RootState } from "@/components/redux/store.ts";
-import {getEventById, joinEvent, leaveEvent, tentativeEvent} from "@/components/redux/actions/eventActions.ts";
+import {
+    deleteEvent,
+    getEventById,
+    joinEvent,
+    leaveEvent,
+    tentativeEvent
+} from "@/components/redux/actions/eventActions.ts";
 import { useNavigate } from "react-router-dom";
 import { useEventDraft } from "@/components/utils/EventDraftContext.tsx";
 import { format } from "date-fns";
 import { Toggle } from "@/components/ui/toggle.tsx";
+import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
+
+interface Participant {
+    userId: number;
+    attendanceStatus?: "yes" | "no" | "maybe" | undefined;
+    color?: string;
+}
+
+interface Calendar {
+    id: number;
+    creationByUserId: number;
+    participants: Participant[];
+    events: {
+        id: number;
+        title: string;
+        startAt: string;
+        endAt: string;
+    }[];
+}
 
 interface EventType {
     id: string;
@@ -20,6 +46,12 @@ interface EventType {
     start: Date;
     end: Date;
     allDay?: boolean;
+    backgroundColor?: string;
+    borderColor?: string;
+    textColor?: string;
+    extendedProps?: {
+        attendanceStatus?: "yes" | "no" | "maybe" | undefined;
+    };
 }
 
 interface CustomCalendarProps {
@@ -34,10 +66,13 @@ interface CustomCalendarProps {
     onViewChange?: (view: string) => void;
 }
 
+const DEFAULT_CALENDAR_COLOR = "#AD1457";
+
 export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onViewChange }: CustomCalendarProps) {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [events, setEvents] = useState<EventType[]>([]);
-    const calendars = useSelector((state: RootState) => state.calendars.calendars);
+    const calendars = useSelector((state: RootState) => state.calendars.calendars) as Calendar[];
     const selectedCalendarIds = useSelector((state: RootState) => state.calendars.selectedCalendarIds);
     const currentUser = useSelector((state: RootState) => state.auth.user);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -70,24 +105,73 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
         }
     }, [onCalendarApiReady]);
 
-    useEffect(() => {
+    const fetchEventsWithAttendance = async () => {
         if (!calendars.length || !currentUser?.id) return;
 
-        const allEvents = calendars
-            .filter(calendar =>
-                selectedCalendarIds.includes(calendar.id) &&
-                (calendar.creationByUserId === currentUser.id ||
-                    calendar.participants.some(p => p.userId === currentUser.id))
-            )
-            .flatMap(calendar => calendar.events.map(event => ({
-                id: event.id.toString(),
-                title: event.title,
-                start: new Date(event.startAt),
-                end: new Date(event.endAt),
-                allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
-            })));
+        const allEventsPromises = calendars
+            .filter(calendar => selectedCalendarIds.includes(calendar.id) &&
+                (calendar.creationByUserId === currentUser.id || calendar.participants.some(p => p.userId === currentUser.id)))
+            .flatMap(calendar => calendar.events.map(async (event) => {
+                const response = await getEventById(event.id);
+                if (response.success) {
+                    const attendanceStatus = response.data.participants.find(
+                        (p: any) => p.userId === currentUser?.id
+                    )?.attendanceStatus as "yes" | "no" | "maybe" | undefined;
+                    const participant = calendar.participants.find(p => p.userId === currentUser?.id);
+                    const calendarColor = participant?.color || DEFAULT_CALENDAR_COLOR;
 
+                    let backgroundColor = "#ffffff";
+                    let textColor = calendarColor;
+                    let classNames = [];
+
+                    switch (attendanceStatus) {
+                        case "yes":
+                            backgroundColor = calendarColor;
+                            textColor = "#ffffff";
+                            break;
+                        case "no":
+                            backgroundColor = "#ffffff";
+                            textColor = calendarColor;
+                            break;
+                        case "maybe":
+                            backgroundColor = calendarColor;
+                            textColor = "#ffffff";
+                            classNames.push("event-maybe");
+                            break;
+                    }
+
+                    return {
+                        id: event.id.toString(),
+                        title: event.title,
+                        start: new Date(event.startAt),
+                        end: new Date(event.endAt),
+                        allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
+                        backgroundColor,
+                        borderColor: calendarColor,
+                        textColor,
+                        classNames,
+                        extendedProps: { attendanceStatus },
+                    } as EventType;
+                }
+                return {
+                    id: event.id.toString(),
+                    title: event.title,
+                    start: new Date(event.startAt),
+                    end: new Date(event.endAt),
+                    allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
+                    backgroundColor: "#ffffff",
+                    borderColor: DEFAULT_CALENDAR_COLOR,
+                    textColor: DEFAULT_CALENDAR_COLOR,
+                    extendedProps: { attendanceStatus: undefined },
+                } as EventType;
+            }));
+
+        const allEvents = await Promise.all(allEventsPromises);
         setEvents(allEvents);
+    };
+
+    useEffect(() => {
+        fetchEventsWithAttendance();
     }, [calendars, selectedCalendarIds, currentUser?.id]);
 
     const handleTogglePress = (date: Date) => {
@@ -157,7 +241,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 startTime: format(new Date(selectedEvent.start), "HH:mm"),
                 endTime: format(new Date(selectedEvent.end), "HH:mm"),
                 calendarId: selectedEvent.calendarId || null,
-                color: selectedEvent.color || "#D50000",
+                color: selectedEvent.color || "#3788d8",
                 selectedUsers: formattedUsers,
                 creatorId: selectedEvent.creationByUserId,
             };
@@ -171,10 +255,21 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
         handleEventClickClose();
     };
 
-    const handleDeleteEvent = () => {
-        console.log("Delete event:", selectedEvent);
-        setEvents((prevEvents) => prevEvents.filter((e) => e.id !== selectedEvent.id));
-        handleEventClickClose();
+    const handleDeleteEvent = async () => {
+        if (selectedEvent) {
+            const eventId = parseInt(selectedEvent.id, 10);
+            console.log("Deleting event with ID:", eventId);
+
+            const result = await deleteEvent(dispatch, eventId);
+
+            if (result.success) {
+                setEvents((prevEvents) => prevEvents.filter((e) => e.id !== selectedEvent.id));
+                showSuccessToast(ToastStatusMessages.EVENTS.DELETE_SUCCESS);
+            } else {
+                showErrorToasts(result.errors || ToastStatusMessages.EVENTS.DELETE_FAILED);
+            }
+            handleEventClickClose();
+        }
     };
 
     const handleAttendanceChange = async (userId: number, status: "yes" | "no" | "maybe" | undefined) => {
@@ -202,7 +297,22 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     return;
             }
 
-            if (!result.success) {
+            if (result.success) {
+                setEvents(prevEvents =>
+                    prevEvents.map(event =>
+                        event.id === selectedEvent.id
+                            ? {
+                                ...event,
+                                backgroundColor: status === "yes" || status === "maybe" ? "#3788d8" : "#ffffff",
+                                borderColor: "#3788d8",
+                                textColor: status === "yes" || status === "maybe" ? "#ffffff" : "#3788d8",
+                                classNames: status === "maybe" ? ["event-maybe"] : [], // Apply class for "maybe"
+                                extendedProps: { attendanceStatus: status },
+                            } as EventType
+                            : event
+                    )
+                );
+            } else {
                 setSelectedEvent(selectedEvent);
             }
         }
@@ -222,10 +332,8 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
 
                 let xPosition;
                 if (currentView === "timeGridDay") {
-                    // Центрируем поповер по горизонтали в дневном виде
                     xPosition = (screenWidth - popoverWidth) / 2 + window.scrollX;
                 } else {
-                    // Оригинальная логика для других видов
                     const rightEdge = rect.right + popoverWidth + offset;
                     const isOverflowingX = rightEdge > screenWidth;
                     xPosition = isOverflowingX
@@ -257,7 +365,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 setIsPositionReady(true);
             }
         }
-    }, [tempEventId, selectedEvent, currentView]); // Добавляем currentView в зависимости
+    }, [tempEventId, selectedEvent, currentView]);
 
     const handleScrollToTime = () => {
         const calendarApi = calendarRef.current?.getApi();
@@ -371,12 +479,18 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                             eventEnd = new Date(info.start.getTime() + 30 * 60 * 1000);
                         }
 
-                        const newEvent = {
+                        const newEvent: EventType = {
                             id: newEventId,
                             title: "New Event",
                             start: info.start,
                             end: eventEnd,
                             allDay: isAllDayEvent,
+                            backgroundColor: "#3788d8",
+                            borderColor: "#3788d8",
+                            textColor: "#ffffff",
+                            extendedProps: {
+                                attendanceStatus: "yes" as const,
+                            },
                         };
 
                         setEvents((prevEvents) => [...prevEvents, newEvent]);
@@ -401,7 +515,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                                 type: response.data.type,
                                 calendarId: response.data.calendarId,
                                 color: response.data.color,
-
                                 creationByUserId: response.data.creationByUserId,
                                 calendarTitle: response.data.calendar.title,
                                 calendarType: response.data.calendar.type,
@@ -410,7 +523,9 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                                     fullName: response.data.creator.fullName,
                                     email: response.data.creator.email,
                                     profilePicture: response.data.creator.profilePicture,
-                                    attendanceStatus: response.data.participants.find((p: any) => p.userId === response.data.creator.id)?.attendanceStatus,
+                                    attendanceStatus: response.data.participants.find(
+                                        (p: any) => p.userId === response.data.creator.id
+                                    )?.attendanceStatus,
                                 },
                                 participants: response.data.participants.map((p: any) => ({
                                     id: p.user.id,
@@ -428,10 +543,19 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     eventContent={(arg) => {
                         const title = arg.event.title || "New Event";
                         const isAllDay = arg.event.allDay;
+                        const attendanceStatus = arg.event.extendedProps?.attendanceStatus;
+
+                        const textStyle = {
+                            color: attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : "#3788d8",
+                            textDecoration: attendanceStatus === "no" ? "line-through" : "none",
+                        };
+
                         if (isAllDay) {
                             return (
                                 <div className="custom-event">
-                                    <div className="event-title">{title}</div>
+                                    <div className="event-title truncate" style={textStyle}>
+                                        {title}
+                                    </div>
                                 </div>
                             );
                         }
@@ -450,8 +574,10 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
 
                         return (
                             <div className="custom-event">
-                                <div className="event-title truncate">{title}</div>
-                                <div className="event-time truncate">
+                                <div className="event-title truncate" style={textStyle}>
+                                    {title}
+                                </div>
+                                <div className="event-time truncate" style={textStyle}>
                                     {startTime} - {endTime}
                                 </div>
                             </div>

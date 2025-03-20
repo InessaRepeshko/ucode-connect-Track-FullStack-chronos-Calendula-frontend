@@ -1,6 +1,5 @@
 import * as React from "react";
-import {Check, ChevronRight, MoreVertical} from "lucide-react";
-
+import { Check, ChevronRight, MoreVertical } from "lucide-react";
 import {
     Collapsible,
     CollapsibleContent,
@@ -13,7 +12,6 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
 import {
     SidebarGroup,
     SidebarGroupContent,
@@ -21,17 +19,22 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarSeparator, useSidebar,
+    SidebarSeparator,
+    useSidebar,
 } from "@/components/ui/sidebar";
-import {ColorPicker} from "@/components/calendar/ColorPiker.tsx";
-import {ManageCalendarModal} from "@/components/calendar/ManageCalendarModal.tsx";
-import {useDispatch, useSelector} from "react-redux";
-import {deleteCalendar} from "@/components/redux/actions/calendarActions.ts";
-import {ConfirmDeleteModal} from "@/components/calendar/ConfirmDeleteModal.tsx";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
-import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
-import {toggleCalendarSelection} from "@/components/redux/reducers/calendarReducer.ts";
-import {RootState} from "@/components/redux/store.ts";
+import { ColorPicker } from "@/components/calendar/ColorPiker.tsx";
+import { ManageCalendarModal } from "@/components/calendar/ManageCalendarModal.tsx";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    deleteCalendar,
+    unsubscribeFromCalendar,
+    updateCalendarColor,
+} from "@/components/redux/actions/calendarActions.ts";
+import { ConfirmDeleteModal } from "@/components/calendar/ConfirmDeleteModal.tsx";
+import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
+import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
+import { toggleCalendarSelection } from "@/components/redux/reducers/calendarReducer.ts";
+import { RootState } from "@/components/redux/store.ts";
 
 interface CalendarItem {
     id: number;
@@ -39,6 +42,7 @@ interface CalendarItem {
     type: string;
     creationByUserId?: string;
     role?: "owner" | "member" | "viewer";
+    participants?: { userId: number; color?: string; role: string }[];
 }
 
 interface CalendarsProps {
@@ -48,10 +52,13 @@ interface CalendarsProps {
     }[];
 }
 
-export function Calendars({calendars}: CalendarsProps) {
+const DEFAULT_CALENDAR_COLOR = "#AD1457";
+
+export function Calendars({ calendars }: CalendarsProps) {
     const dispatch = useDispatch();
     const selectedCalendarIds = useSelector((state: RootState) => state.calendars.selectedCalendarIds);
-    const [selectedColor, setSelectedColor] = React.useState("#000000");
+    const reduxCalendars = useSelector((state: RootState) => state.calendars.calendars); // Данные из Redux
+    const currentUser = useSelector((state: RootState) => state.auth.user);
     const [selectedCalendar, setSelectedCalendar] = React.useState<CalendarItem | null>(null);
     const [hoveredItem, setHoveredItem] = React.useState<string | null>(null);
     const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
@@ -71,8 +78,8 @@ export function Calendars({calendars}: CalendarsProps) {
 
     const confirmDelete = async () => {
         if (!calendarToDelete) return;
-            const result = await deleteCalendar(dispatch, calendarToDelete.id);
-            setIsDeleteModalOpen(false);
+        const result = await deleteCalendar(dispatch, calendarToDelete.id);
+        setIsDeleteModalOpen(false);
         if (result.success) {
             showSuccessToast(ToastStatusMessages.CALENDARS.DELETE_SUCCESS);
         } else {
@@ -80,17 +87,39 @@ export function Calendars({calendars}: CalendarsProps) {
         }
     };
 
-    const handleUnsubscribeClick = (calendarId: number) => {
-        // Здесь логика отписки (например, вызов действия Redux)
-        console.log(`Unsubscribe from calendar ${calendarId}`);
-        // Пример: dispatch(unsubscribeFromCalendar(calendarId));
+    const handleUnsubscribeClick = async (calendarId: number) => {
+        const result = await unsubscribeFromCalendar(dispatch, calendarId);
+        if (result.success) {
+            showSuccessToast("Successfully unsubscribed from calendar");
+        } else {
+            showErrorToasts(result.errors || "Failed to unsubscribe from calendar");
+        }
     };
 
     const handleToggleCalendar = (calendarId: number) => {
         dispatch(toggleCalendarSelection(calendarId));
     };
 
-    const { isMobile } = useSidebar()
+    const handleColorChange = async (calendarId: number, color: string) => {
+        if (!currentUser?.id) return;
+        const result = await updateCalendarColor(dispatch, calendarId, color, currentUser.id);
+        if (result.success) {
+            showSuccessToast("Calendar color updated successfully");
+        } else {
+            showErrorToasts(result.errors || "Failed to update calendar color");
+        }
+    };
+
+    const getCalendarColor = (calendar: CalendarItem) => {
+        if (!currentUser?.id) return DEFAULT_CALENDAR_COLOR;
+        const reduxCalendar = reduxCalendars.find((cal) => cal.id === calendar.id);
+        if (!reduxCalendar || !reduxCalendar.participants) return DEFAULT_CALENDAR_COLOR;
+        const participant = reduxCalendar.participants.find((p) => p.userId === currentUser.id);
+        return participant?.color || DEFAULT_CALENDAR_COLOR;
+    };
+
+    const { isMobile } = useSidebar();
+
     return (
         <>
             {calendars.map((calendar, index) => (
@@ -104,7 +133,8 @@ export function Calendars({calendars}: CalendarsProps) {
                                 <CollapsibleTrigger className="flex w-full items-center">
                                     {calendar.name}
                                     <ChevronRight
-                                        className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90"/>
+                                        className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90"
+                                    />
                                 </CollapsibleTrigger>
                             </SidebarGroupLabel>
                             <CollapsibleContent>
@@ -112,7 +142,8 @@ export function Calendars({calendars}: CalendarsProps) {
                                     <SidebarMenu>
                                         {calendar.items.map((item) => {
                                             const isOwner = item.role === "owner";
-                                            const isMemberOrViewer = item.role === "member" || item.role === "viewer";
+                                            const canUnsubscribe = item.type !== "main" && !isOwner;
+                                            const currentColor = getCalendarColor(item);
 
                                             return (
                                                 <SidebarMenuItem
@@ -125,15 +156,21 @@ export function Calendars({calendars}: CalendarsProps) {
                                                 >
                                                     <SidebarMenuButton
                                                         className="flex items-center justify-between w-full"
-                                                        onClick={() => handleToggleCalendar(item.id)}
                                                     >
                                                         <div className="flex items-center">
                                                             <div
                                                                 data-active={selectedCalendarIds.includes(item.id)}
-                                                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
+                                                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground flex aspect-square size-5 shrink-0 items-center justify-center rounded-sm border"
+                                                                style={{
+                                                                    backgroundColor: selectedCalendarIds.includes(item.id) ? currentColor : "transparent",
+                                                                    borderColor: currentColor,
+                                                                    borderWidth: "1.5px",
+                                                                }}
+                                                                onClick={() => handleToggleCalendar(item.id)}
                                                             >
                                                                 <Check
-                                                                    className="hidden size-3 group-data-[active=true]/calendar-item:block"
+                                                                    strokeWidth={2.9}
+                                                                    className="hidden size-5 group-data-[active=true]/calendar-item:block text-white"
                                                                 />
                                                             </div>
                                                             <span className="ml-2 truncate max-w-[150px] overflow-hidden whitespace-nowrap">
@@ -164,7 +201,6 @@ export function Calendars({calendars}: CalendarsProps) {
                                                                             Edit
                                                                         </DropdownMenuItem>
                                                                     )}
-
                                                                     {isOwner && item.type !== "main" && (
                                                                         <DropdownMenuItem
                                                                             className="text-red-500 cursor-pointer"
@@ -173,8 +209,7 @@ export function Calendars({calendars}: CalendarsProps) {
                                                                             Delete
                                                                         </DropdownMenuItem>
                                                                     )}
-
-                                                                    {isMemberOrViewer && (
+                                                                    {canUnsubscribe && (
                                                                         <DropdownMenuItem
                                                                             className="text-red-500 cursor-pointer"
                                                                             onClick={() => handleUnsubscribeClick(item.id)}
@@ -182,13 +217,12 @@ export function Calendars({calendars}: CalendarsProps) {
                                                                             Unsubscribe
                                                                         </DropdownMenuItem>
                                                                     )}
-
                                                                     <DropdownMenuSeparator />
                                                                     <DropdownMenuItem style={{ backgroundColor: "transparent" }}>
                                                                         <div className="flex gap-2">
                                                                             <ColorPicker
-                                                                                selectedColor={selectedColor}
-                                                                                onChange={setSelectedColor}
+                                                                                selectedColor={currentColor}
+                                                                                onChange={(color) => handleColorChange(item.id, color)}
                                                                             />
                                                                         </div>
                                                                     </DropdownMenuItem>
@@ -204,7 +238,7 @@ export function Calendars({calendars}: CalendarsProps) {
                             </CollapsibleContent>
                         </Collapsible>
                     </SidebarGroup>
-                    <SidebarSeparator className="mx-0"/>
+                    <SidebarSeparator className="mx-0" />
                 </React.Fragment>
             ))}
 

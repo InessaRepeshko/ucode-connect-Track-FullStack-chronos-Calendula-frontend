@@ -55,3 +55,27 @@ body {
     position: absolute;
     top: -5px;
 }
+
+.fc-event.event-maybe {
+    background-color: #3788d8 !important; /* Сплошной синий фон */
+    color: #ffffff !important; /* Белый текст */
+    position: relative; /* Для позиционирования псевдоэлемента */
+    overflow: hidden; /* Чтобы полоски не выходили за границы */
+}
+
+.fc-event.event-maybe::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 5px, /* Прозрачная часть */
+            rgb(55, 76, 214) 4px, /* Начало белой полоски */
+            rgb(55, 76, 214) 8px /* Конец белой полоски */
+    );
+    pointer-events: none; /* Чтобы псевдоэлемент не мешал взаимодействию с событием */
+}

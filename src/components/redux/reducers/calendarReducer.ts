@@ -92,6 +92,16 @@ const calendarSlice = createSlice({
             }
             state.error = null;
         },
+        updateCalendarColorAction: (state, action: PayloadAction<{ calendarId: number; color: string; userId: number }>) => {
+            const { calendarId, color, userId } = action.payload;
+            const calendar = state.calendars.find((cal) => cal.id === calendarId);
+            if (calendar && calendar.participants) {
+                const participant = calendar.participants.find((p) => p.userId === userId);
+                if (participant) {
+                    participant.color = color;
+                }
+            }
+        },
         removeCalendar: (state, action: PayloadAction<number>) => {
             state.calendars = state.calendars.filter(calendar => calendar.id !== action.payload);
             state.selectedCalendarIds = state.selectedCalendarIds.filter(id => id !== action.payload);
@@ -111,5 +121,5 @@ const calendarSlice = createSlice({
     },
 });
 
-export const { setCalendars, addCalendar, updateCalendarAction, removeCalendar, setError, toggleCalendarSelection } = calendarSlice.actions;
+export const { setCalendars, addCalendar, updateCalendarAction, updateCalendarColorAction, removeCalendar, setError, toggleCalendarSelection } = calendarSlice.actions;
 export default calendarSlice.reducer;
