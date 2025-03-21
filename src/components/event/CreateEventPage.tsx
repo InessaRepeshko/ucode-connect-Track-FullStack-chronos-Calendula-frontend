@@ -19,8 +19,7 @@ import {
     CalendarIcon,
     ChevronDownIcon,
     ClockIcon,
-    House,
-    Palette,
+    Palette, Sofa,
     Video,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -424,7 +423,7 @@ const CreateEventPage = () => {
                                                 <BriefcaseBusiness strokeWidth={3} />Work
                                             </SelectItem>
                                             <SelectItem value="home">
-                                                <House strokeWidth={3} />Home
+                                                <Sofa strokeWidth={3} />Home
                                             </SelectItem>
                                             <SelectItem value="hobby">
                                                 <Palette strokeWidth={3} />Hobby

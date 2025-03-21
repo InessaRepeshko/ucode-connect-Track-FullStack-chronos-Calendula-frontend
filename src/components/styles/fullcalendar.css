@@ -56,26 +56,24 @@ body {
     top: -5px;
 }
 
-.fc-event.event-maybe {
-    background-color: #3788d8 !important; /* Сплошной синий фон */
-    color: #ffffff !important; /* Белый текст */
-    position: relative; /* Для позиционирования псевдоэлемента */
-    overflow: hidden; /* Чтобы полоски не выходили за границы */
+.event-with-stripe {
+    position: relative;
+    overflow: hidden;
 }
 
-.fc-event.event-maybe::before {
+.event-with-stripe::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 5px, /* Прозрачная часть */
-            rgb(55, 76, 214) 4px, /* Начало белой полоски */
-            rgb(55, 76, 214) 8px /* Конец белой полоски */
-    );
-    pointer-events: none; /* Чтобы псевдоэлемент не мешал взаимодействию с событием */
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 95%;
+    background-color: var(--calendar-stripe-color, #AD1457);
+    border-radius: 10px;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+.event-with-stripe .custom-event {
+    padding-left: 12px;
 }

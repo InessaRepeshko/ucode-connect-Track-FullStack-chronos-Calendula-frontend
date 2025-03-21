@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import "@/components/styles/fullcalendar.css";
 import CreateEventPopover from "@/components/event/CreateEventPopover.tsx";
 import EventDetailsPopover from "@/components/event/EventDetailsPopover.tsx";
-import {useDispatch, useSelector} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/components/redux/store.ts";
 import {
     deleteEvent,
@@ -19,8 +19,8 @@ import { useNavigate } from "react-router-dom";
 import { useEventDraft } from "@/components/utils/EventDraftContext.tsx";
 import { format } from "date-fns";
 import { Toggle } from "@/components/ui/toggle.tsx";
-import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
-import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
+import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
+import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
 
 interface Participant {
     userId: number;
@@ -51,6 +51,9 @@ interface EventType {
     textColor?: string;
     extendedProps?: {
         attendanceStatus?: "yes" | "no" | "maybe" | undefined;
+        calendarId: number; // Добавляем calendarId для связи с календарём
+        color?: string; // Добавляем color
+        calendarColor?: string; // Добавляем calendarColor
     };
 }
 
@@ -94,7 +97,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
     useEffect(() => {
         if (calendarRef.current && onCalendarApiReady) {
             const calendarApi = calendarRef.current.getApi();
-            console.log("onCalendarApiReady called");
             onCalendarApiReady({
                 prev: () => calendarApi.prev(),
                 next: () => calendarApi.next(),
@@ -105,6 +107,90 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
         }
     }, [onCalendarApiReady]);
 
+    const getCalendarColor = (calendarId: number | undefined) => {
+        if (!calendarId || !currentUser?.id) return DEFAULT_CALENDAR_COLOR;
+        const reduxCalendar = calendars.find((cal) => cal.id === calendarId);
+        if (!reduxCalendar || !reduxCalendar.participants) return DEFAULT_CALENDAR_COLOR;
+        const participant = reduxCalendar.participants.find((p) => p.userId === currentUser.id);
+        return participant?.color || DEFAULT_CALENDAR_COLOR;
+    };
+
+    const handleAttendanceChange = async (userId: number, status: "yes" | "no" | "maybe" | undefined) => {
+        if (selectedEvent) {
+            const eventId = parseInt(selectedEvent.id);
+            const calendarId = selectedEvent.calendarId;
+            const calendarColor = getCalendarColor(calendarId);
+
+            console.log(`handleAttendanceChange - eventId: ${eventId}, status: ${status}, calendarId: ${calendarId}, calendarColor: ${calendarColor}`);
+
+            const updatedParticipants = selectedEvent.participants.map((p: any) =>
+                p.id === userId ? { ...p, attendanceStatus: status } : p
+            );
+            setSelectedEvent({ ...selectedEvent, participants: updatedParticipants });
+
+            let result;
+            switch (status) {
+                case "yes":
+                    result = await joinEvent(eventId);
+                    break;
+                case "no":
+                    result = await leaveEvent(eventId);
+                    break;
+                case "maybe":
+                    result = await tentativeEvent(eventId);
+                    break;
+                default:
+                    console.warn("No status provided, skipping server update");
+                    return;
+            }
+
+            if (result.success) {
+                console.log(`Attendance change successful, updating events with color: ${calendarColor}`);
+
+                const currentEvent = events.find(event => event.id === selectedEvent.id);
+                if (!currentEvent) return;
+
+                const updatedEvent: EventType = {
+                    ...currentEvent,
+                    backgroundColor: status === "yes" || status === "maybe" ? calendarColor : "#ffffff",
+                    borderColor: calendarColor,
+                    textColor: status === "yes" || status === "maybe" ? "#ffffff" : calendarColor,
+                    extendedProps: { ...currentEvent.extendedProps, attendanceStatus: status },
+                };
+
+                // Обновляем состояние events
+                setEvents(prevEvents =>
+                    prevEvents.map(event =>
+                        event.id === selectedEvent.id ? updatedEvent : event
+                    )
+                );
+
+                const calendarApi = calendarRef.current?.getApi();
+                if (calendarApi) {
+                    const event = calendarApi.getEventById(selectedEvent.id);
+                    if (event) {
+                        event.remove();
+
+                        calendarApi.addEvent({
+                            id: updatedEvent.id,
+                            title: updatedEvent.title,
+                            start: updatedEvent.start,
+                            end: updatedEvent.end,
+                            allDay: updatedEvent.allDay,
+                            backgroundColor: updatedEvent.backgroundColor,
+                            borderColor: updatedEvent.borderColor,
+                            textColor: updatedEvent.textColor,
+                            extendedProps: updatedEvent.extendedProps,
+                        });
+                    }
+                }
+            } else {
+                setSelectedEvent(selectedEvent);
+                showErrorToasts(ToastStatusMessages.EVENTS.UPDATE_FAILED);
+            }
+        }
+    };
+
     const fetchEventsWithAttendance = async () => {
         if (!calendars.length || !currentUser?.id) return;
 
@@ -113,30 +199,34 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 (calendar.creationByUserId === currentUser.id || calendar.participants.some(p => p.userId === currentUser.id)))
             .flatMap(calendar => calendar.events.map(async (event) => {
                 const response = await getEventById(event.id);
+                const calendarColor = getCalendarColor(calendar.id);
+
                 if (response.success) {
-                    const attendanceStatus = response.data.participants.find(
+                    const currentUserParticipant = response.data.participants.find(
                         (p: any) => p.userId === currentUser?.id
-                    )?.attendanceStatus as "yes" | "no" | "maybe" | undefined;
-                    const participant = calendar.participants.find(p => p.userId === currentUser?.id);
-                    const calendarColor = participant?.color || DEFAULT_CALENDAR_COLOR;
+                    );
+                    const attendanceStatus = currentUserParticipant?.attendanceStatus as "yes" | "no" | "maybe" | undefined;
+                    const eventColor = currentUserParticipant?.color || calendarColor;
 
                     let backgroundColor = "#ffffff";
-                    let textColor = calendarColor;
-                    let classNames = [];
+                    let borderColor = calendarColor;
+                    let textColor = eventColor;
 
                     switch (attendanceStatus) {
                         case "yes":
-                            backgroundColor = calendarColor;
+                            backgroundColor = eventColor;
                             textColor = "#ffffff";
+                            borderColor = eventColor;
                             break;
                         case "no":
                             backgroundColor = "#ffffff";
-                            textColor = calendarColor;
+                            textColor = eventColor;
+                            borderColor = eventColor;
                             break;
                         case "maybe":
-                            backgroundColor = calendarColor;
+                            backgroundColor = eventColor;
                             textColor = "#ffffff";
-                            classNames.push("event-maybe");
+                            borderColor = eventColor;
                             break;
                     }
 
@@ -147,10 +237,14 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                         end: new Date(event.endAt),
                         allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
                         backgroundColor,
-                        borderColor: calendarColor,
+                        borderColor,
                         textColor,
-                        classNames,
-                        extendedProps: { attendanceStatus },
+                        extendedProps: {
+                            attendanceStatus,
+                            calendarId: calendar.id,
+                            color: eventColor,
+                            calendarColor,
+                        },
                     } as EventType;
                 }
                 return {
@@ -160,9 +254,14 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     end: new Date(event.endAt),
                     allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
                     backgroundColor: "#ffffff",
-                    borderColor: DEFAULT_CALENDAR_COLOR,
-                    textColor: DEFAULT_CALENDAR_COLOR,
-                    extendedProps: { attendanceStatus: undefined },
+                    borderColor: calendarColor,
+                    textColor: calendarColor,
+                    extendedProps: {
+                        attendanceStatus: undefined,
+                        calendarId: calendar.id,
+                        color: undefined,
+                        calendarColor,
+                    },
                 } as EventType;
             }));
 
@@ -173,6 +272,64 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
     useEffect(() => {
         fetchEventsWithAttendance();
     }, [calendars, selectedCalendarIds, currentUser?.id]);
+
+    const handleColorChange = (eventId: string, newColor: string) => {
+        // Находим текущее событие в состоянии events
+        const currentEvent = events.find(event => event.id === eventId);
+        if (!currentEvent) return;
+
+        const calendarColor = getCalendarColor(currentEvent.extendedProps?.calendarId);
+        const attendanceStatus = currentEvent.extendedProps?.attendanceStatus;
+
+        // Создаём обновлённое событие
+        const updatedEvent: EventType = {
+            ...currentEvent,
+            backgroundColor: attendanceStatus === "yes" || attendanceStatus === "maybe" ? newColor : "#ffffff",
+            borderColor: newColor,
+            textColor: attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : newColor,
+            extendedProps: {
+                ...currentEvent.extendedProps,
+                color: newColor,
+                calendarColor,
+            },
+        };
+
+        setEvents(prevEvents =>
+            prevEvents.map(event =>
+                event.id === eventId ? updatedEvent : event
+            )
+        );
+
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+            const event = calendarApi.getEventById(eventId);
+            if (event) {
+                event.remove();
+
+                calendarApi.addEvent({
+                    id: updatedEvent.id,
+                    title: updatedEvent.title,
+                    start: updatedEvent.start,
+                    end: updatedEvent.end,
+                    allDay: updatedEvent.allDay,
+                    backgroundColor: updatedEvent.backgroundColor,
+                    borderColor: updatedEvent.borderColor,
+                    textColor: updatedEvent.textColor,
+                    extendedProps: updatedEvent.extendedProps,
+                });
+            }
+        }
+
+        if (selectedEvent && selectedEvent.id === eventId) {
+            setSelectedEvent({
+                ...selectedEvent,
+                color: newColor,
+                participants: selectedEvent.participants.map((p: any) =>
+                    p.id === currentUser?.id ? { ...p, color: newColor } : p
+                ),
+            });
+        }
+    };
 
     const handleTogglePress = (date: Date) => {
         const dateKey = date.toISOString();
@@ -190,7 +347,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 setEvents((prevEvents) =>
                     prevEvents.map((e) => (e.id === tempEventId ? updatedEvent : e))
                 );
-                console.log("Отправка в БД:", updatedEvent);
             }
             setTempEventId(null);
         }
@@ -219,8 +375,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
 
     const handleEditEvent = () => {
         if (selectedEvent) {
-            console.log("Selected Event:", selectedEvent);
-
             const formattedUsers = selectedEvent.participants.map((participant: any) => ({
                 id: participant.id,
                 fullName: participant.fullName,
@@ -241,16 +395,13 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 startTime: format(new Date(selectedEvent.start), "HH:mm"),
                 endTime: format(new Date(selectedEvent.end), "HH:mm"),
                 calendarId: selectedEvent.calendarId || null,
-                color: selectedEvent.color || "#3788d8",
+                color: selectedEvent.color || getCalendarColor(selectedEvent.calendarId),
                 selectedUsers: formattedUsers,
                 creatorId: selectedEvent.creationByUserId,
             };
 
-            console.log("Draft Data:", draftData);
             setDraft(draftData);
             navigate("/edit-event");
-        } else {
-            console.log("No selectedEvent available");
         }
         handleEventClickClose();
     };
@@ -258,8 +409,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
     const handleDeleteEvent = async () => {
         if (selectedEvent) {
             const eventId = parseInt(selectedEvent.id, 10);
-            console.log("Deleting event with ID:", eventId);
-
             const result = await deleteEvent(dispatch, eventId);
 
             if (result.success) {
@@ -269,52 +418,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 showErrorToasts(result.errors || ToastStatusMessages.EVENTS.DELETE_FAILED);
             }
             handleEventClickClose();
-        }
-    };
-
-    const handleAttendanceChange = async (userId: number, status: "yes" | "no" | "maybe" | undefined) => {
-        if (selectedEvent) {
-            const eventId = parseInt(selectedEvent.id);
-            let result;
-
-            const updatedParticipants = selectedEvent.participants.map((p: any) =>
-                p.id === userId ? { ...p, attendanceStatus: status } : p
-            );
-            setSelectedEvent({ ...selectedEvent, participants: updatedParticipants });
-
-            switch (status) {
-                case "yes":
-                    result = await joinEvent(eventId);
-                    break;
-                case "no":
-                    result = await leaveEvent(eventId);
-                    break;
-                case "maybe":
-                    result = await tentativeEvent(eventId);
-                    break;
-                default:
-                    console.warn("No status provided, skipping server update");
-                    return;
-            }
-
-            if (result.success) {
-                setEvents(prevEvents =>
-                    prevEvents.map(event =>
-                        event.id === selectedEvent.id
-                            ? {
-                                ...event,
-                                backgroundColor: status === "yes" || status === "maybe" ? "#3788d8" : "#ffffff",
-                                borderColor: "#3788d8",
-                                textColor: status === "yes" || status === "maybe" ? "#ffffff" : "#3788d8",
-                                classNames: status === "maybe" ? ["event-maybe"] : [], // Apply class for "maybe"
-                                extendedProps: { attendanceStatus: status },
-                            } as EventType
-                            : event
-                    )
-                );
-            } else {
-                setSelectedEvent(selectedEvent);
-            }
         }
     };
 
@@ -378,7 +481,6 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
     };
 
     useEffect(() => {
-        console.log("Scroll useEffect triggered");
         if (calendarRef.current?.getApi()) {
             handleScrollToTime();
         }
@@ -399,7 +501,28 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     eventResizableFromStart={true}
                     eventDurationEditable={true}
                     eventDidMount={(info) => {
-                        info.el.setAttribute("data-event-id", info.event.id);
+                        const el = info.el as HTMLElement;
+                        el.setAttribute("data-event-id", info.event.id);
+                        const attendanceStatus = info.event.extendedProps?.attendanceStatus;
+                        const calendarColor = info.event.extendedProps?.calendarColor || "#AD1457";
+                        const eventColor = info.event.extendedProps?.color || calendarColor;
+
+                        // Добавляем класс .event-with-stripe только если цвета различаются
+                        if (eventColor !== calendarColor) {
+                            el.classList.add("event-with-stripe");
+                        }
+
+                        // Применяем стили
+                        if (attendanceStatus === "maybe") {
+                            el.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                            el.style.backgroundColor = eventColor;
+                        } else {
+                            el.style.backgroundImage = "none";
+                            el.style.backgroundColor = attendanceStatus === "yes" ? eventColor : "#ffffff";
+                        }
+
+                        // Устанавливаем цвет полоски через CSS-переменную
+                        el.style.setProperty("--calendar-stripe-color", calendarColor);
                     }}
                     headerToolbar={false}
                     height="100%"
@@ -471,6 +594,8 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                         const newEventId = Date.now().toString();
                         let eventEnd = info.end;
                         const isAllDayEvent = info.allDay;
+                        const defaultCalendarId = selectedCalendarIds[0] || calendars[0]?.id;
+                        const calendarColor = getCalendarColor(defaultCalendarId);
 
                         if (isAllDayEvent) {
                             eventEnd = new Date(info.start);
@@ -485,11 +610,12 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                             start: info.start,
                             end: eventEnd,
                             allDay: isAllDayEvent,
-                            backgroundColor: "#3788d8",
-                            borderColor: "#3788d8",
+                            backgroundColor: calendarColor,
+                            borderColor: calendarColor,
                             textColor: "#ffffff",
                             extendedProps: {
                                 attendanceStatus: "yes" as const,
+                                calendarId: defaultCalendarId ?? 0, // Устанавливаем 0, если calendarId undefined
                             },
                         };
 
@@ -505,6 +631,12 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                         const eventId = parseInt(info.event.id, 10);
                         const response = await getEventById(eventId);
                         if (response.success) {
+                            // Извлекаем цвет для текущего пользователя
+                            const currentUserParticipant = response.data.participants.find(
+                                (p: any) => p.userId === currentUser?.id
+                            );
+                            const eventColor = currentUserParticipant?.color || "#AD1457"; // Дефолтный цвет, если не найден
+
                             setSelectedEvent({
                                 id: info.event.id,
                                 title: response.data.title,
@@ -514,7 +646,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                                 category: response.data.category,
                                 type: response.data.type,
                                 calendarId: response.data.calendarId,
-                                color: response.data.color,
+                                color: eventColor, // Передаём цвет текущего пользователя
                                 creationByUserId: response.data.creationByUserId,
                                 calendarTitle: response.data.calendar.title,
                                 calendarType: response.data.calendar.type,
@@ -533,6 +665,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                                     email: p.user.email,
                                     profilePicture: p.user.profilePicture,
                                     attendanceStatus: p.attendanceStatus,
+                                    color: p.color, // Передаём цвет каждого участника
                                 })),
                             });
                             setTempEventId(null);
@@ -544,9 +677,10 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                         const title = arg.event.title || "New Event";
                         const isAllDay = arg.event.allDay;
                         const attendanceStatus = arg.event.extendedProps?.attendanceStatus;
+                        const calendarColor = getCalendarColor(arg.event.extendedProps.calendarId);
 
                         const textStyle = {
-                            color: attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : "#3788d8",
+                            color: attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : calendarColor,
                             textDecoration: attendanceStatus === "no" ? "line-through" : "none",
                         };
 
@@ -605,6 +739,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     onClose={handleEventClickClose}
                     currentUserId={currentUser?.id}
                     onAttendanceChange={handleAttendanceChange}
+                    onColorChange={handleColorChange}
                 />
             )}
         </div>

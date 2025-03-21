@@ -28,6 +28,7 @@ interface Event {
     creator: User;
     participants: Participant[];
     creationAt: string;
+    color?: string;
 }
 
 interface EventState {
@@ -59,11 +60,24 @@ const eventSlice = createSlice({
                 state.events[index] = action.payload;
             }
         },
+        updateEventColor: (state, action: PayloadAction<{ eventId: number; color: string }>) => {
+            const eventIndex = state.events.findIndex((event) => event.id === action.payload.eventId);
+            if (eventIndex !== -1) {
+                const event = state.events[eventIndex];
+                // Обновляем цвет в participants для создателя
+                const creatorParticipantIndex = event.participants.findIndex(
+                    (p) => p.userId === event.creationByUserId
+                );
+                if (creatorParticipantIndex !== -1) {
+                    state.events[eventIndex].participants[creatorParticipantIndex].color = action.payload.color;
+                }
+            }
+        },
         setError: (state, action: PayloadAction<string | null>) => {
             state.error = action.payload;
         },
     },
 });
 
-export const { addEvent, setEvents, removeEvent, updateEventRedux, setError } = eventSlice.actions;
+export const { addEvent, setEvents, removeEvent, updateEventRedux, updateEventColor, setError } = eventSlice.actions;
 export default eventSlice.reducer;

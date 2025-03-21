@@ -6,7 +6,7 @@ import {
     addEvent,
     setEvents,
     removeEvent,
-    updateEventRedux
+    updateEventRedux, updateEventColor
 } from "@/components/redux/reducers/eventReducer.ts";
 
 interface ErrorResponse {
@@ -86,6 +86,22 @@ export const updateEvent = async (dispatch: Dispatch, eventId: number, payload: 
             success: false,
             errors: axiosError.response?.data?.validationErrors /*|| axiosError.response?.data?.message*/,
         };
+    }
+};
+
+export const updateEventColorApi = async (dispatch: Dispatch, eventId: number, color: string) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.patch(`/events/${eventId}/color/`, { color }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        dispatch(updateEventColor({ eventId, color }));
+        return { success: true, data: data.data };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        dispatch(setError(axiosError.response?.data?.message || null));
+        return { success: false, error: axiosError.response?.data?.message || null };
     }
 };
 

@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Предполагается, что ваш Tooltip импортируется отсюда
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 const defaultColors = [
     '#AD1457', '#E4C441', '#0B8043', '#3F51B5', '#8E24AA',
@@ -30,7 +30,7 @@ export function ColorPicker({ selectedColor, onChange }: { selectedColor: string
                         </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        {colorNames[index]} {/* Отображаем название цвета */}
+                        {colorNames[index]}
                     </TooltipContent>
                 </Tooltip>
             ))}
