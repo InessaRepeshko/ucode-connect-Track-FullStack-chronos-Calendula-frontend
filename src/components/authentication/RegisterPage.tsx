@@ -3,15 +3,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import soloImage from "../../assets/solo.png";
+import soloImage from "../../assets/logo_white.png";
 import { LockKeyhole, Mail, MapPinHouse, UserRound, Eye, EyeOff } from "lucide-react";
 import { useState} from "react";
 import { useDispatch } from "react-redux";
 import { registerUser } from "@/components/redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
-import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
-import {UiMessages} from "@/constants/uiMessages.ts";
+import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
+import { UiMessages } from "@/constants/uiMessages.ts";
 
 export default function RegisterPage({className, ...props}: React.ComponentProps<"div">) {
     const [showPassword, setShowPassword] = useState(false);
@@ -45,11 +45,11 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                 <div className={cn("flex flex-col gap-6", className)} {...props}>
                     <Card className="overflow-hidden p-0">
                         <CardContent className="grid p-0 md:grid-cols-2">
-                            <div className="relative hidden bg-muted md:block">
+                            <div className="relative hidden bg-muted md:block flex items-center justify-center">
                                 <img
                                     src={soloImage}
                                     alt="Image"
-                                    className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+                                    className="absolute inset-0 h-full w-full object-contain dark:brightness-[0.2] dark:grayscale bg-white"
                                 />
                             </div>
                             <form className="p-6 md:p-8" onSubmit={handleSubmit}>

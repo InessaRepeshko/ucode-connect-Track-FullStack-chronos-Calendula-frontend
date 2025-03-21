@@ -11,7 +11,7 @@ import { setUser } from "@/components/redux/reducers/authReducer";
 import { useNavigate } from "react-router-dom";
 import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
 import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
-import {UiMessages} from "@/constants/uiMessages.ts";
+import { UiMessages } from "@/constants/uiMessages.ts";
 
 export default function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
     const [showPassword, setShowPassword] = useState(false);
@@ -59,11 +59,11 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                 <div className={cn("flex flex-col gap-6", className)} {...props}>
                     <Card className="overflow-hidden p-0">
                         <CardContent className="grid p-0 md:grid-cols-2">
-                            <div className="relative hidden bg-muted md:block">
+                            <div className="relative hidden bg-muted md:block flex items-center justify-center">
                                 <img
                                     src={soloImage}
                                     alt="Image"
-                                    className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+                                    className="absolute inset-0 h-full w-full object-contain dark:brightness-[0.2] dark:grayscale bg-white"
                                 />
                             </div>
                             <div className="relative w-full overflow-hidden">
