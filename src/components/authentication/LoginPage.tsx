@@ -63,7 +63,7 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                                 <img
                                     src={soloImage}
                                     alt="Image"
-                                    className="absolute inset-0 h-full w-full object-contain dark:brightness-[0.2] dark:grayscale bg-white"
+                                    className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale bg-white"
                                 />
                             </div>
                             <div className="relative w-full overflow-hidden">
