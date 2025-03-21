@@ -73,9 +73,10 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
             name: "Others Calendars",
             items: calendars
                 .filter((calendar) =>
-                    calendar.type === "holidays" &&
-                    (calendar.creationByUserId === userId ||
-                        calendar.participants.some(participant => participant.userId === userId))
+                    (calendar.type === "holidays"
+                        || calendar.type === "birthdays")
+                    && (calendar.creationByUserId === userId
+                        || calendar.participants.some(participant => participant.userId === userId))
                 )
                 .map((calendar) => ({
                     id: calendar.id,
