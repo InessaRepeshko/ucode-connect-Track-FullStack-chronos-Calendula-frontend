@@ -106,18 +106,20 @@ export function NavUser({
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={`http://localhost:8080/profile-pictures/${user.profilePicture}`} alt={user.fullName} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.fullName}</span>
-                  <span className="truncate text-xs py-1">{user.email}</span>
-                  <div className="flex items-center space-x-4 text-xs py-1">
-                    <span className="text-xs">{getCountryWithFlag(user.country)}</span>
-                    <span className="text-xs">{calculateAge(user.birthday)} years old</span>
+              <div className="flex flex-col gap-2 px-1 py-1.5 text-left text-sm">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={`http://localhost:8080/profile-pictures/${user.profilePicture}`} alt={user.fullName} />
+                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 leading-tight">
+                    <span className="truncate font-medium block">{user.fullName}</span>
+                    <span className="truncate text-xs py-1 block">{user.email}</span>
                   </div>
+                </div>
+                <div className="flex items-center ml-10 space-x-4 text-xs">
+                  <span className="text-xs">{getCountryWithFlag(user.country)}</span>
+                  <span className="text-xs">{calculateAge(user.birthday)} years old</span>
                 </div>
               </div>
             </DropdownMenuLabel>
