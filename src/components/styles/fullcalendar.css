@@ -77,3 +77,11 @@ body {
 .event-with-stripe .custom-event {
     padding-left: 12px;
 }
+
+/* Стили для зеркального события во время выделения */
+.fc-event-mirror {
+    background-color: var(--main-calendar-color, #AD1457) !important;
+    border-color: var(--main-calendar-color, #AD1457) !important;
+    color: #ffffff !important; /* Устанавливаем белый цвет текста */
+}
+

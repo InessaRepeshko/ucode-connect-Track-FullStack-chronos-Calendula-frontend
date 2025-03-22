@@ -48,6 +48,7 @@ interface EventDetailsPopoverProps {
         creationByUserId: number;
         calendarTitle?: string;
         calendarType?: string;
+        calendarId: number;
         creator: User;
         participants: User[];
         color?: string;
@@ -58,6 +59,7 @@ interface EventDetailsPopoverProps {
     currentUserId?: number;
     onAttendanceChange?: (userId: number, status: "yes" | "no" | "maybe" | undefined) => void;
     onColorChange?: (eventId: string, newColor: string) => void;
+    calendarColor: string;
 }
 
 export default function EventDetailsPopover({

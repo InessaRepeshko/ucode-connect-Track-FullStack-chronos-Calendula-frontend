@@ -38,6 +38,7 @@ interface Calendar {
         startAt: string;
         endAt: string;
     }[];
+    type?: string;
 }
 
 interface EventType {
@@ -120,8 +121,9 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
             const eventId = parseInt(selectedEvent.id);
             const calendarId = selectedEvent.calendarId;
             const calendarColor = getCalendarColor(calendarId);
+            const eventColor = selectedEvent.color || calendarColor; // Используем цвет события, если он есть, иначе цвет календаря
 
-            console.log(`handleAttendanceChange - eventId: ${eventId}, status: ${status}, calendarId: ${calendarId}, calendarColor: ${calendarColor}`);
+            console.log(`handleAttendanceChange - eventId: ${eventId}, status: ${status}, calendarId: ${calendarId}, calendarColor: ${calendarColor}, eventColor: ${eventColor}`);
 
             const updatedParticipants = selectedEvent.participants.map((p: any) =>
                 p.id === userId ? { ...p, attendanceStatus: status } : p
@@ -145,16 +147,16 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
             }
 
             if (result.success) {
-                console.log(`Attendance change successful, updating events with color: ${calendarColor}`);
+                console.log(`Attendance change successful, updating events with color: ${eventColor}`);
 
                 const currentEvent = events.find(event => event.id === selectedEvent.id);
                 if (!currentEvent) return;
 
                 const updatedEvent: EventType = {
                     ...currentEvent,
-                    backgroundColor: status === "yes" || status === "maybe" ? calendarColor : "#ffffff",
-                    borderColor: calendarColor,
-                    textColor: status === "yes" || status === "maybe" ? "#ffffff" : calendarColor,
+                    backgroundColor: status === "yes" || status === "maybe" ? eventColor : "#ffffff",
+                    borderColor: eventColor, // Используем eventColor вместо calendarColor
+                    textColor: status === "yes" || status === "maybe" ? "#ffffff" : eventColor, // Используем eventColor для текста при "no"
                     extendedProps: { ...currentEvent.extendedProps, attendanceStatus: status },
                 };
 
@@ -206,11 +208,11 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                         (p: any) => p.userId === currentUser?.id
                     );
                     const attendanceStatus = currentUserParticipant?.attendanceStatus as "yes" | "no" | "maybe" | undefined;
-                    const eventColor = currentUserParticipant?.color || calendarColor;
+                    const eventColor = currentUserParticipant?.color || calendarColor; // Используем цвет события, если он есть
 
                     let backgroundColor = "#ffffff";
-                    let borderColor = calendarColor;
-                    let textColor = eventColor;
+                    let borderColor = eventColor; // Используем eventColor
+                    let textColor = eventColor; // Используем eventColor
 
                     switch (attendanceStatus) {
                         case "yes":
@@ -220,7 +222,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                             break;
                         case "no":
                             backgroundColor = "#ffffff";
-                            textColor = eventColor;
+                            textColor = eventColor; // Текст берём из eventColor
                             borderColor = eventColor;
                             break;
                         case "maybe":
@@ -242,7 +244,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                         extendedProps: {
                             attendanceStatus,
                             calendarId: calendar.id,
-                            color: eventColor,
+                            color: currentUserParticipant?.color, // Сохраняем только если цвет задан
                             calendarColor,
                         },
                     } as EventType;
@@ -267,21 +269,70 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
 
         const allEvents = await Promise.all(allEventsPromises);
         setEvents(allEvents);
+
+        // Обновляем события в calendarApi
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+            calendarApi.getEvents().forEach(event => event.remove());
+            allEvents.forEach(event => {
+                calendarApi.addEvent({
+                    id: event.id,
+                    title: event.title,
+                    start: event.start,
+                    end: event.end,
+                    allDay: event.allDay,
+                    backgroundColor: event.backgroundColor,
+                    borderColor: event.borderColor,
+                    textColor: event.textColor,
+                    extendedProps: event.extendedProps,
+                });
+            });
+        }
     };
 
     useEffect(() => {
-        fetchEventsWithAttendance();
+        const updateEvents = async () => {
+            await fetchEventsWithAttendance();
+
+            // Обновляем цвет полоски и класс event-with-stripe для всех видимых событий
+            const calendarApi = calendarRef.current?.getApi();
+            if (calendarApi) {
+                calendarApi.getEvents().forEach(event => {
+                    const eventId = event.id;
+                    const eventEl = document.querySelector(`.fc-event[data-event-id="${eventId}"]`) as HTMLElement;
+                    if (eventEl) {
+                        const calendarId = event.extendedProps?.calendarId;
+                        const newCalendarColor = getCalendarColor(calendarId);
+                        const eventColor = event.extendedProps?.color || newCalendarColor;
+
+                        // Обновляем цвет полоски
+                        eventEl.style.setProperty("--calendar-stripe-color", newCalendarColor);
+
+                        // Проверяем, нужно ли добавить или убрать класс event-with-stripe
+                        // Класс добавляется только если:
+                        // 1. extendedProps.color существует (цвет события задан вручную)
+                        // 2. eventColor отличается от newCalendarColor
+                        if (event.extendedProps?.color && eventColor !== newCalendarColor) {
+                            eventEl.classList.add("event-with-stripe");
+                        } else {
+                            eventEl.classList.remove("event-with-stripe");
+                        }
+                    }
+                });
+            }
+        };
+
+        updateEvents();
     }, [calendars, selectedCalendarIds, currentUser?.id]);
 
+
     const handleColorChange = (eventId: string, newColor: string) => {
-        // Находим текущее событие в состоянии events
         const currentEvent = events.find(event => event.id === eventId);
         if (!currentEvent) return;
 
         const calendarColor = getCalendarColor(currentEvent.extendedProps?.calendarId);
         const attendanceStatus = currentEvent.extendedProps?.attendanceStatus;
 
-        // Создаём обновлённое событие
         const updatedEvent: EventType = {
             ...currentEvent,
             backgroundColor: attendanceStatus === "yes" || attendanceStatus === "maybe" ? newColor : "#ffffff",
@@ -317,6 +368,16 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                     textColor: updatedEvent.textColor,
                     extendedProps: updatedEvent.extendedProps,
                 });
+
+                // Обновляем класс event-with-stripe после изменения цвета
+                const eventEl = document.querySelector(`.fc-event[data-event-id="${eventId}"]`) as HTMLElement;
+                if (eventEl) {
+                    if (newColor && newColor !== calendarColor) {
+                        eventEl.classList.add("event-with-stripe");
+                    } else {
+                        eventEl.classList.remove("event-with-stripe");
+                    }
+                }
             }
         }
 
@@ -398,6 +459,7 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
                 color: selectedEvent.color || getCalendarColor(selectedEvent.calendarId),
                 selectedUsers: formattedUsers,
                 creatorId: selectedEvent.creationByUserId,
+                notifyBeforeMinutes: selectedEvent.notifyBeforeMinutes,
             };
 
             setDraft(draftData);
@@ -486,262 +548,351 @@ export default function CustomCalendar({ onCalendarApiReady, onTitleChange, onVi
         }
     }, []);
 
-    return (
-        <div className="p-4 bg-white rounded-lg shadow-md relative h-[calc(95vh-2rem)]">
-            <div className="calendar-container h-full overflow-y-auto">
-                <FullCalendar
-                    ref={calendarRef}
-                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                    initialView="timeGridWeek"
-                    editable={true}
-                    selectable={true}
-                    selectMirror={true}
-                    nowIndicator={true}
-                    events={events}
-                    eventResizableFromStart={true}
-                    eventDurationEditable={true}
-                    eventDidMount={(info) => {
-                        const el = info.el as HTMLElement;
-                        el.setAttribute("data-event-id", info.event.id);
-                        const attendanceStatus = info.event.extendedProps?.attendanceStatus;
-                        const calendarColor = info.event.extendedProps?.calendarColor || "#AD1457";
-                        const eventColor = info.event.extendedProps?.color || calendarColor;
+    const applyMirrorStyles = (mainCalendarColor: string) => {
+            const mirrorEvent = document.querySelector(".fc-event-mirror") as HTMLElement;
+            if (mirrorEvent) {
+                mirrorEvent.style.backgroundColor = mainCalendarColor;
+                mirrorEvent.style.borderColor = mainCalendarColor;
+                mirrorEvent.style.color = "#ffffff";
 
-                        // Добавляем класс .event-with-stripe только если цвета различаются
-                        if (eventColor !== calendarColor) {
-                            el.classList.add("event-with-stripe");
-                        }
+                const textElements = mirrorEvent.querySelectorAll(".fc-event-title, .fc-event-time");
+                textElements.forEach((el) => {
+                    (el as HTMLElement).style.color = "#ffffff";
+                });
+            }
+    };
 
-                        // Применяем стили
-                        if (attendanceStatus === "maybe") {
-                            el.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
-                            el.style.backgroundColor = eventColor;
-                        } else {
-                            el.style.backgroundImage = "none";
-                            el.style.backgroundColor = attendanceStatus === "yes" ? eventColor : "#ffffff";
-                        }
+    const [activeEventId, setActiveEventId] = useState<string | null>(null);
 
-                        // Устанавливаем цвет полоски через CSS-переменную
-                        el.style.setProperty("--calendar-stripe-color", calendarColor);
-                    }}
-                    headerToolbar={false}
-                    height="100%"
-                    slotLabelFormat={{
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                    }}
-                    firstDay={1}
-                    dayHeaderContent={(arg) => {
-                        const dateKey = arg.date.toISOString();
-                        const isPressed = pressedToggles.has(dateKey);
-                        const weekday = arg.text.split(" ")[0];
-                        const day = arg.text.split(" ")[1];
-                        const displayText = currentView === "dayGridMonth" ? weekday : `${day} ${weekday}`;
+    const getMainCalendarColor = () => {
+        const mainCalendar = calendars.find((cal) => cal.type === "main");
+        if (mainCalendar && currentUser?.id) {
+            const participant = mainCalendar.participants.find((p) => p.userId === currentUser.id);
+            return participant?.color || DEFAULT_CALENDAR_COLOR;
+        }
+        return DEFAULT_CALENDAR_COLOR;
+    };
 
-                        if (currentView === "dayGridMonth") {
+    const getEventColor = (eventId: string) => {
+        const event = events.find((e) => e.id === eventId);
+        if (!event) {
+            return DEFAULT_CALENDAR_COLOR;
+        }
+        const eventColor = event.extendedProps?.color;
+        if (eventColor) {
+            return eventColor;
+        }
+        const calendarId = event.extendedProps?.calendarId;
+        const calendarColor = getCalendarColor(calendarId);
+        return calendarColor;
+    };
+
+        return (
+            <div className="p-4 bg-white rounded-lg shadow-md relative h-[calc(95vh-2rem)]">
+                <div className="calendar-container h-full overflow-y-auto">
+                    <FullCalendar
+                        ref={calendarRef}
+                        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                        initialView="timeGridWeek"
+                        editable={true}
+                        selectable={true}
+                        selectMirror={true}
+                        nowIndicator={true}
+                        events={events}
+                        eventResizableFromStart={true}
+                        eventDurationEditable={true}
+                        eventDragStart={(info) => {
+                            const eventId = info.event.id;
+                            setActiveEventId(eventId);
+                            const eventColor = getEventColor(eventId); // Используем функцию напрямую
+                            const calendarContainer = document.querySelector(".calendar-container") as HTMLElement;
+                            if (calendarContainer) {
+                                calendarContainer.style.setProperty("--main-calendar-color", eventColor);
+                            }
+                        }}
+                        eventDragStop={() => {
+                            setActiveEventId(null);
+                            const calendarContainer = document.querySelector(".calendar-container") as HTMLElement;
+                            if (calendarContainer) {
+                                const mainCalendarColor = getMainCalendarColor();
+                                calendarContainer.style.setProperty("--main-calendar-color", mainCalendarColor);
+                            }
+                        }}
+                        eventResizeStart={(info) => {
+                            const eventId = info.event.id;
+                            setActiveEventId(eventId);
+                            const eventColor = getEventColor(eventId);
+                            const calendarContainer = document.querySelector(".calendar-container") as HTMLElement;
+                            if (calendarContainer) {
+                                calendarContainer.style.setProperty("--main-calendar-color", eventColor);
+                            }
+                        }}
+                        eventResizeStop={() => {
+                            setActiveEventId(null);
+                            const calendarContainer = document.querySelector(".calendar-container") as HTMLElement;
+                            if (calendarContainer) {
+                                const mainCalendarColor = getMainCalendarColor();
+                                calendarContainer.style.setProperty("--main-calendar-color", mainCalendarColor);
+                            }
+                        }}
+                        eventDidMount={(info) => {
+                            const el = info.el as HTMLElement;
+                            el.setAttribute("data-event-id", info.event.id);
+                            const attendanceStatus = info.event.extendedProps?.attendanceStatus;
+                            const calendarColor = info.event.extendedProps?.calendarColor || "#AD1457";
+                            const eventColor = info.event.extendedProps?.color || calendarColor;
+
+                            if (eventColor !== calendarColor) {
+                                el.classList.add("event-with-stripe");
+                            }
+
+                            if (attendanceStatus === "maybe") {
+                                el.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                                el.style.backgroundColor = eventColor;
+                            } else {
+                                el.style.backgroundImage = "none";
+                                el.style.backgroundColor = attendanceStatus === "yes" ? eventColor : "#ffffff";
+                            }
+
+                            if (info.event.id === tempEventId) {
+                                el.style.backgroundColor = calendarColor;
+                                el.style.borderColor = calendarColor;
+                                el.style.color = "#ffffff";
+                            }
+
+                            el.style.setProperty("--calendar-stripe-color", calendarColor);
+                        }}
+                        headerToolbar={false}
+                        height="100%"
+                        slotLabelFormat={{
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                        }}
+                        firstDay={1}
+                        dayHeaderContent={(arg) => {
+                            const dateKey = arg.date.toISOString();
+                            const isPressed = pressedToggles.has(dateKey);
+                            const weekday = arg.text.split(" ")[0];
+                            const day = arg.text.split(" ")[1];
+                            const displayText = currentView === "dayGridMonth" ? weekday : `${day} ${weekday}`;
+
+                            if (currentView === "dayGridMonth") {
+                                return (
+                                    <div className="h-9 flex items-center justify-center px-5 text-[16px] text-black font-medium">
+                                        {displayText}
+                                    </div>
+                                );
+                            }
+
                             return (
-                                <div className="h-9 flex items-center justify-center px-5 text-[16px] text-black font-medium">
+                                <Toggle
+                                    pressed={isPressed}
+                                    onPressedChange={() => handleTogglePress(arg.date)}
+                                    className="h-8 py-5 px-4 text-[16px] rounded-xl cursor-pointer text-black hover:text-black"
+                                >
                                     {displayText}
-                                </div>
+                                </Toggle>
                             );
-                        }
+                        }}
+                        dayHeaderFormat={dayHeaderFormat}
+                        datesSet={(arg) => {
+                            let formattedTitle = "";
+                            const startDate = arg.start;
+                            const endDate = arg.end;
+                            const timeDiff = endDate.getTime() - startDate.getTime();
+                            const middleTime = startDate.getTime() + Math.floor(timeDiff / 2);
+                            const middleDate = new Date(middleTime);
 
-                        return (
-                            <Toggle
-                                pressed={isPressed}
-                                onPressedChange={() => handleTogglePress(arg.date)}
-                                className="h-8 py-5 px-4 text-[16px] rounded-xl cursor-pointer text-black hover:text-black"
-                            >
-                                {displayText}
-                            </Toggle>
-                        );
-                    }}
-                    dayHeaderFormat={dayHeaderFormat}
-                    datesSet={(arg) => {
-                        let formattedTitle = "";
-                        const startDate = arg.start;
-                        const endDate = arg.end;
-                        const timeDiff = endDate.getTime() - startDate.getTime();
-                        const middleTime = startDate.getTime() + Math.floor(timeDiff / 2);
-                        const middleDate = new Date(middleTime);
+                            if (arg.view.type === "timeGridWeek" || arg.view.type === "dayGridMonth") {
+                                formattedTitle = format(middleDate, "MMMM yyyy");
+                            } else if (arg.view.type === "timeGridDay") {
+                                formattedTitle = format(middleDate, "MMMM d, yyyy");
+                            }
 
-                        if (arg.view.type === "timeGridWeek" || arg.view.type === "dayGridMonth") {
-                            formattedTitle = format(middleDate, "MMMM yyyy");
-                        } else if (arg.view.type === "timeGridDay") {
-                            formattedTitle = format(middleDate, "MMMM d, yyyy");
-                        }
+                            setCurrentTitle(formattedTitle);
+                            if (onTitleChange) onTitleChange(formattedTitle);
 
-                        setCurrentTitle(formattedTitle);
-                        if (onTitleChange) onTitleChange(formattedTitle);
+                            if (arg.view.type === "dayGridMonth") {
+                                setDayHeaderFormat({ weekday: "short" });
+                            } else {
+                                setDayHeaderFormat({ weekday: "short", day: "numeric" });
+                            }
 
-                        if (arg.view.type === "dayGridMonth") {
-                            setDayHeaderFormat({ weekday: "short" });
-                        } else {
-                            setDayHeaderFormat({ weekday: "short", day: "numeric" });
-                        }
+                            if (arg.view.type === "timeGridWeek" && currentView !== "timeGridWeek") {
+                                setPressedToggles(new Set());
+                            }
+                            if (arg.view.type === "timeGridWeek" || arg.view.type === "timeGridDay") {
+                                handleScrollToTime();
+                            }
+                            setCurrentView(arg.view.type);
+                            if (onViewChange) onViewChange(arg.view.type);
+                        }}
+                        select={(info) => {
+                            const newEventId = Date.now().toString();
+                            let eventEnd = info.end;
+                            const isAllDayEvent = info.allDay;
+                            const defaultCalendarId = selectedCalendarIds[0] || calendars[0]?.id;
+                            const mainCalendarColor = getMainCalendarColor();
 
-                        if (arg.view.type === "timeGridWeek" && currentView !== "timeGridWeek") {
-                            setPressedToggles(new Set());
-                        }
-                        if (arg.view.type === "timeGridWeek" || arg.view.type === "timeGridDay") {
-                            handleScrollToTime();
-                        }
-                        setCurrentView(arg.view.type);
-                        if (onViewChange) onViewChange(arg.view.type);
-                    }}
-                    select={(info) => {
-                        const newEventId = Date.now().toString();
-                        let eventEnd = info.end;
-                        const isAllDayEvent = info.allDay;
-                        const defaultCalendarId = selectedCalendarIds[0] || calendars[0]?.id;
-                        const calendarColor = getCalendarColor(defaultCalendarId);
+                            // Устанавливаем --main-calendar-color в цвет главного календаря перед созданием события
+                            const calendarContainer = document.querySelector(".calendar-container") as HTMLElement;
+                            if (calendarContainer) {
+                                calendarContainer.style.setProperty("--main-calendar-color", mainCalendarColor);
+                            }
 
-                        if (isAllDayEvent) {
-                            eventEnd = new Date(info.start);
-                            eventEnd.setHours(23, 59, 59, 999);
-                        } else if (info.end.getTime() - info.start.getTime() <= 1000) {
-                            eventEnd = new Date(info.start.getTime() + 30 * 60 * 1000);
-                        }
+                            if (isAllDayEvent) {
+                                eventEnd = new Date(info.start);
+                                eventEnd.setHours(23, 59, 59, 999);
+                            } else if (info.end.getTime() - info.start.getTime() <= 1000) {
+                                eventEnd = new Date(info.start.getTime() + 30 * 60 * 1000);
+                            }
 
-                        const newEvent: EventType = {
-                            id: newEventId,
-                            title: "New Event",
-                            start: info.start,
-                            end: eventEnd,
-                            allDay: isAllDayEvent,
-                            backgroundColor: calendarColor,
-                            borderColor: calendarColor,
-                            textColor: "#ffffff",
-                            extendedProps: {
-                                attendanceStatus: "yes" as const,
-                                calendarId: defaultCalendarId ?? 0, // Устанавливаем 0, если calendarId undefined
-                            },
-                        };
-
-                        setEvents((prevEvents) => [...prevEvents, newEvent]);
-                        setSelectedDate(info.start.toISOString());
-                        setEndDate(eventEnd.toISOString());
-                        setTempEventId(newEventId);
-                        setIsPositionReady(false);
-                        setClickPosition(undefined);
-                        setSelectedEvent(null);
-                    }}
-                    eventClick={async (info) => {
-                        const eventId = parseInt(info.event.id, 10);
-                        const response = await getEventById(eventId);
-                        if (response.success) {
-                            // Извлекаем цвет для текущего пользователя
-                            const currentUserParticipant = response.data.participants.find(
-                                (p: any) => p.userId === currentUser?.id
-                            );
-                            const eventColor = currentUserParticipant?.color || "#AD1457"; // Дефолтный цвет, если не найден
-
-                            setSelectedEvent({
-                                id: info.event.id,
-                                title: response.data.title,
-                                start: response.data.startAt,
-                                end: response.data.endAt,
-                                description: response.data.description,
-                                category: response.data.category,
-                                type: response.data.type,
-                                calendarId: response.data.calendarId,
-                                color: eventColor, // Передаём цвет текущего пользователя
-                                creationByUserId: response.data.creationByUserId,
-                                calendarTitle: response.data.calendar.title,
-                                calendarType: response.data.calendar.type,
-                                creator: {
-                                    id: response.data.creator.id,
-                                    fullName: response.data.creator.fullName,
-                                    email: response.data.creator.email,
-                                    profilePicture: response.data.creator.profilePicture,
-                                    attendanceStatus: response.data.participants.find(
-                                        (p: any) => p.userId === response.data.creator.id
-                                    )?.attendanceStatus,
+                            const newEvent: EventType = {
+                                id: newEventId,
+                                title: "New Event",
+                                start: info.start,
+                                end: eventEnd,
+                                allDay: isAllDayEvent,
+                                backgroundColor: mainCalendarColor,
+                                borderColor: mainCalendarColor,
+                                textColor: "#ffffff",
+                                extendedProps: {
+                                    attendanceStatus: "yes" as const,
+                                    calendarId: defaultCalendarId ?? 0,
+                                    calendarColor: mainCalendarColor,
+                                    color: undefined,
                                 },
-                                participants: response.data.participants.map((p: any) => ({
-                                    id: p.user.id,
-                                    fullName: p.user.fullName,
-                                    email: p.user.email,
-                                    profilePicture: p.user.profilePicture,
-                                    attendanceStatus: p.attendanceStatus,
-                                    color: p.color, // Передаём цвет каждого участника
-                                })),
-                            });
-                            setTempEventId(null);
+                            };
+
+                            setEvents((prevEvents) => [...prevEvents, newEvent]);
+                            setSelectedDate(info.start.toISOString());
+                            setEndDate(eventEnd.toISOString());
+                            setTempEventId(newEventId);
                             setIsPositionReady(false);
                             setClickPosition(undefined);
-                        }
-                    }}
-                    eventContent={(arg) => {
-                        const title = arg.event.title || "New Event";
-                        const isAllDay = arg.event.allDay;
-                        const attendanceStatus = arg.event.extendedProps?.attendanceStatus;
-                        const calendarColor = getCalendarColor(arg.event.extendedProps.calendarId);
+                            setSelectedEvent(null);
 
-                        const textStyle = {
-                            color: attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : calendarColor,
-                            textDecoration: attendanceStatus === "no" ? "line-through" : "none",
-                        };
+                            applyMirrorStyles(mainCalendarColor);
+                        }}
+                        eventClick={async (info) => {
+                            const eventId = parseInt(info.event.id, 10);
+                            const response = await getEventById(eventId);
+                            if (response.success) {
+                                const currentUserParticipant = response.data.participants.find(
+                                    (p: any) => p.userId === currentUser?.id
+                                );
+                                const calendarId = response.data.calendarId;
+                                const calendarColor = getCalendarColor(calendarId);
+                                const eventColor = currentUserParticipant?.color || calendarColor; // Используем calendarColor вместо "#AD1457"
 
-                        if (isAllDay) {
+                                setSelectedEvent({
+                                    id: info.event.id,
+                                    title: response.data.title,
+                                    start: response.data.startAt,
+                                    end: response.data.endAt,
+                                    description: response.data.description,
+                                    category: response.data.category,
+                                    type: response.data.type,
+                                    calendarId: calendarId,
+                                    color: eventColor,
+                                    creationByUserId: response.data.creationByUserId,
+                                    calendarTitle: response.data.calendar.title,
+                                    calendarType: response.data.calendar.type,
+                                    notifyBeforeMinutes: response.data.notifyBeforeMinutes,
+                                    creator: {
+                                        id: response.data.creator.id,
+                                        fullName: response.data.creator.fullName,
+                                        email: response.data.creator.email,
+                                        profilePicture: response.data.creator.profilePicture,
+                                        attendanceStatus: response.data.participants.find(
+                                            (p: any) => p.userId === response.data.creator.id
+                                        )?.attendanceStatus,
+                                    },
+                                    participants: response.data.participants.map((p: any) => ({
+                                        id: p.user.id,
+                                        fullName: p.user.fullName,
+                                        email: p.user.email,
+                                        profilePicture: p.user.profilePicture,
+                                        attendanceStatus: p.attendanceStatus,
+                                        color: p.color,
+                                    })),
+                                });
+                                setTempEventId(null);
+                                setIsPositionReady(false);
+                                setClickPosition(undefined);
+                            }
+                        }}
+                        eventContent={(arg) => {
+                            const title = arg.event.title || "New Event";
+                            const isAllDay = arg.event.allDay;
+                            const attendanceStatus = arg.event.extendedProps?.attendanceStatus;
+                            const calendarColor = getCalendarColor(arg.event.extendedProps.calendarId);
+                            const eventColor = arg.event.extendedProps?.color || calendarColor;
+
+                            const textStyle = {
+                                color: arg.isMirror ? "#ffffff" : (attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : eventColor),
+                                textDecoration: attendanceStatus === "no" ? "line-through" : "none",
+                            };
+
+                            if (isAllDay) {
+                                return (
+                                    <div className="custom-event">
+                                        <div className="event-title truncate" style={textStyle}>
+                                            {title}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            const startTime = arg.event.start
+                                ? new Date(arg.event.start).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })
+                                : "??:??";
+                            const endTime = arg.event.end
+                                ? new Date(arg.event.end).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })
+                                : "??:??";
+
                             return (
                                 <div className="custom-event">
                                     <div className="event-title truncate" style={textStyle}>
                                         {title}
                                     </div>
+                                    <div className="event-time truncate" style={textStyle}>
+                                        {startTime} - {endTime}
+                                    </div>
                                 </div>
                             );
-                        }
-                        const startTime = arg.event.start
-                            ? new Date(arg.event.start).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })
-                            : "??:??";
-                        const endTime = arg.event.end
-                            ? new Date(arg.event.end).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })
-                            : "??:??";
+                        }}
+                    />
+                </div>
 
-                        return (
-                            <div className="custom-event">
-                                <div className="event-title truncate" style={textStyle}>
-                                    {title}
-                                </div>
-                                <div className="event-time truncate" style={textStyle}>
-                                    {startTime} - {endTime}
-                                </div>
-                            </div>
-                        );
-                    }}
-                />
+                {isPositionReady && clickPosition && tempEventId && (
+                    <CreateEventPopover
+                        selectedDate={selectedDate}
+                        endDate={endDate}
+                        position={clickPosition}
+                        onSave={handleAddEvent}
+                        onClose={handleClose}
+                    />
+                )}
+
+                {isPositionReady && clickPosition && selectedEvent && (
+                    <EventDetailsPopover
+                        position={clickPosition}
+                        event={selectedEvent}
+                        onEdit={handleEditEvent}
+                        onDelete={handleDeleteEvent}
+                        onClose={handleEventClickClose}
+                        currentUserId={currentUser?.id}
+                        onAttendanceChange={handleAttendanceChange}
+                        onColorChange={handleColorChange}
+                    />
+                )}
             </div>
-
-            {isPositionReady && clickPosition && tempEventId && (
-                <CreateEventPopover
-                    selectedDate={selectedDate}
-                    endDate={endDate}
-                    position={clickPosition}
-                    onSave={handleAddEvent}
-                    onClose={handleClose}
-                />
-            )}
-
-            {isPositionReady && clickPosition && selectedEvent && (
-                <EventDetailsPopover
-                    position={clickPosition}
-                    event={selectedEvent}
-                    onEdit={handleEditEvent}
-                    onDelete={handleDeleteEvent}
-                    onClose={handleEventClickClose}
-                    currentUserId={currentUser?.id}
-                    onAttendanceChange={handleAttendanceChange}
-                    onColorChange={handleColorChange}
-                />
-            )}
-        </div>
-    );
-}
+        );
+    }

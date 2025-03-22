@@ -27,17 +27,17 @@ interface CustomToolbarFullCalendarProps {
 }
 
 export default function CustomToolbarFullCalendar({calendarApi, title, currentView}: CustomToolbarFullCalendarProps) {
-    const [selectedView, setSelectedView] = useState("Неделя");
+    const [selectedView, setSelectedView] = useState("Week");
     const user = useSelector((state: RootState) => state.auth.user);
 
     useEffect(() => {
         if (currentView) {
             const viewMap: { [key: string]: string } = {
-                dayGridMonth: "Месяц",
-                timeGridWeek: "Неделя",
-                timeGridDay: "День",
+                dayGridMonth: "Month",
+                timeGridWeek: "Week",
+                timeGridDay: "Day",
             };
-            setSelectedView(viewMap[currentView] || "Неделя");
+            setSelectedView(viewMap[currentView] || "Week");
         }
     }, [currentView]);
 
@@ -45,13 +45,13 @@ export default function CustomToolbarFullCalendar({calendarApi, title, currentVi
         setSelectedView(view);
         if (calendarApi) {
             switch (view) {
-                case "Месяц":
+                case "Month":
                     calendarApi.changeView("dayGridMonth");
                     break;
-                case "Неделя":
+                case "Week":
                     calendarApi.changeView("timeGridWeek");
                     break;
-                case "День":
+                case "Day":
                     calendarApi.changeView("timeGridDay");
                     break;
                 default:
@@ -109,9 +109,9 @@ export default function CustomToolbarFullCalendar({calendarApi, title, currentVi
                         <SelectValue placeholder="Выберите вид"/>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Месяц">Месяц</SelectItem>
-                        <SelectItem value="Неделя">Неделя</SelectItem>
-                        <SelectItem value="День">День</SelectItem>
+                        <SelectItem value="Month">Month</SelectItem>
+                        <SelectItem value="Week">Week</SelectItem>
+                        <SelectItem value="Day">Day</SelectItem>
                     </SelectContent>
                 </Select>
 

@@ -74,6 +74,7 @@ const CreateEventPage = () => {
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [isEditMode, setIsEditMode] = useState(false);
     const [creatorId, setCreatorId] = useState<number | null>(null); // ID создателя события
+    const [notifyBeforeMinutes, setNotifyBeforeMinutes] = useState<number | undefined>(10);
 
     const [isInitialized, setIsInitialized] = useState(false); // Флаг инициализации
 
@@ -100,6 +101,7 @@ const CreateEventPage = () => {
                 })) || []
             );
             setCreatorId(draft.creatorId || currentUser.id);
+            setNotifyBeforeMinutes(draft.notifyBeforeMinutes || 10);
         } else if (draft?.calendarId !== undefined) {
             setIsEditMode(false);
             setTitle(draft.title || "");
@@ -111,6 +113,7 @@ const CreateEventPage = () => {
             setCalendarId(draft.calendarId || null);
             setSelectedUsers(draft.selectedUsers || []);
             setCreatorId(currentUser.id);
+            setNotifyBeforeMinutes(10);
         } else if (calendars.length > 0 && calendarId === null) {
             setIsEditMode(false);
             const mainCalendar = calendars.find((calendar) => calendar.type === "main");
@@ -120,6 +123,7 @@ const CreateEventPage = () => {
                 setCalendarId(calendars[0]?.id || null);
             }
             setCreatorId(currentUser.id);
+            setNotifyBeforeMinutes(10);
         }
         setIsInitialized(true);
     }, [calendars, draft, currentUser]);
@@ -162,6 +166,7 @@ const CreateEventPage = () => {
             endAt: allDay ? `${formattedStartAt.split(" ")[0]} 23:59:59` : formattedEndAt,
             calendarId,
             color,
+            notifyBeforeMinutes,
         };
 
         setDraft({
@@ -177,6 +182,7 @@ const CreateEventPage = () => {
             calendarId,
             color,
             selectedUsers,
+            notifyBeforeMinutes,
             eventId: isEditMode ? draft.eventId : undefined,
             creatorId: creatorId || currentUser.id,
         });
@@ -229,6 +235,14 @@ const CreateEventPage = () => {
         const m = (i % 2 === 0 ? "00" : "30").padStart(2, "0");
         return `${h}:${m}`;
     });
+
+    // Опции для напоминания
+    const reminderOptions = [
+        { label: "10 minutes", value: 10 },
+        { label: "30 minutes", value: 30 },
+        { label: "1 hour", value: 60 },
+        { label: "1 day", value: 1440 },
+    ];
 
     return (
         <div className="max-w-188 mx-auto p-6">
@@ -416,7 +430,7 @@ const CreateEventPage = () => {
                                 <TooltipTrigger>
                                     <Select onValueChange={setCategory} value={category}>
                                         <SelectTrigger className="cursor-pointer">
-                                            <SelectValue placeholder="Выберите категорию" />
+                                            <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="work">
@@ -434,7 +448,26 @@ const CreateEventPage = () => {
                                 <TooltipContent>Category</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
+
+                        <Select
+                            onValueChange={(value) => setNotifyBeforeMinutes(Number(value))}
+                            value={notifyBeforeMinutes?.toString()}
+                        >
+                            <SelectTrigger className="w-auto cursor-pointer">
+                                <BellRing className="mr-2 h-4 w-4" />
+                                <SelectValue placeholder="Reminder" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {reminderOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value.toString()}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
+
+
 
                     <Textarea
                         placeholder="Description"

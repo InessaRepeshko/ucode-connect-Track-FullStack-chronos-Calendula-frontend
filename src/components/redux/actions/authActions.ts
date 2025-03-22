@@ -86,7 +86,7 @@ export const logoutUser = async (dispatch: Dispatch) => {
         dispatch(logout());
         return { success: true, errors: {} };
     } catch (error) {
-        const axiosError = error as AxiosError<ErrorResponse>;
+        const axiosError = error as AxiosError<any>;
         return {
             success: false,
             errors: axiosError.response?.data?.message || null,

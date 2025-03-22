@@ -29,14 +29,11 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
 
     useEffect(() => {
         (async () => {
-            if (calendars.length === 0) {
+            if (userId && calendars.length === 0) {
                 await getCalendars(dispatch);
             }
         })();
-    }, [dispatch, calendars.length]);
-
-
-    console.log(calendars);
+    }, [dispatch, userId, calendars.length]);
 
     const data = [
         {

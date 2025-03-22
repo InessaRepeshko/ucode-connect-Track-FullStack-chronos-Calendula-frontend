@@ -23,6 +23,7 @@ interface EventDraft {
     selectedUsers?: User[];
     eventId?: string;
     creatorId?: number;
+    notifyBeforeMinutes?: number;
 }
 
 const EventDraftContext = createContext<{

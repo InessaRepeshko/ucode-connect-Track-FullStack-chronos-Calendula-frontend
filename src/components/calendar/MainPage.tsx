@@ -46,7 +46,7 @@ export default function MainPage() {
                     <CustomToolbarFullCalendar
                         calendarApi={calendarApi}
                         title={calendarTitle}
-                        currentView={currentView} //
+                        currentView={currentView}
                     />
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4">

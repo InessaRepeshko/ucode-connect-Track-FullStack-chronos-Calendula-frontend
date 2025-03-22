@@ -22,6 +22,7 @@ export interface EventPayload {
     category: string;
     startAt: string;
     endAt: string;
+    notifyBeforeMinutes?: number;
 }
 
 export const getEvents = async (dispatch: Dispatch) => {
