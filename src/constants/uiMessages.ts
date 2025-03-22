@@ -41,5 +41,11 @@ export const UiMessages = {
         ADD_CALENDAR_DESCRIPTION: "Enter the calendar information and add users if necessary.",
         UPDATE_CALENDAR_TITLE: "Update the calendar",
         UPDATE_CALENDAR_DESCRIPTION: "Update the calendar information.",
+    },
+    EVENTS: {
+        TEN_MINUTES: "10 minutes before",
+        THIRTY_MINUTES: "30 minutes after",
+        HOUR: "1 hour before",
+        DAY: "1 day before",
     }
 };

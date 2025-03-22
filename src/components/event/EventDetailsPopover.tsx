@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ColorPicker } from "@/components/calendar/ColorPiker.tsx";
 import { useDispatch } from "react-redux";
 import { updateEventColorApi } from "@/components/redux/actions/eventActions.ts";
+import {UiMessages} from "@/constants/uiMessages.ts";
 
 interface User {
     id: number;
@@ -52,6 +53,7 @@ interface EventDetailsPopoverProps {
         creator: User;
         participants: User[];
         color?: string;
+        notifyBeforeMinutes?: number;
     };
     onEdit: () => void;
     onDelete: () => void;
@@ -172,6 +174,15 @@ export default function EventDetailsPopover({
         }
     };
 
+    const getNotificationText = (minutes?: number) => {
+        if (!minutes) return "No reminder";
+        if (minutes === 10) return UiMessages.EVENTS.TEN_MINUTES;
+        if (minutes === 30) return UiMessages.EVENTS.THIRTY_MINUTES;
+        if (minutes === 60) return UiMessages.EVENTS.HOUR;
+        if (minutes === 1440) return UiMessages.EVENTS.DAY;
+        return `${minutes} minutes before`;
+    };
+
     return (
         <Popover open={true} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
@@ -256,17 +267,23 @@ export default function EventDetailsPopover({
                 )}
 
                 <div className="flex items-center gap-2">
+                    {/* Добавляем текст уведомления */}
+                    <div className="flex items-center text-sm text-gray-600">
+                        <BellRing strokeWidth={3} className="mr-1 h-4 w-4" />
+                        <span className="px-1">{getNotificationText(event.notifyBeforeMinutes)}</span>
+                    </div>
+
                     <Popover>
                         <PopoverTrigger>
                             <Button
                                 variant="outline"
-                                className="flex items-center w-18 h-9 p-0 border space-x-1"
+                                className="flex items-center w-13 h-7 border"
                             >
                                 <div
-                                    className="w-4.5 h-4.5 rounded-xl"
+                                    className="-ml-4 w-4 h-4 rounded-xl"
                                     style={{ backgroundColor: color }}
                                 />
-                                <ChevronDownIcon className="w-3 h-3 text-gray-500" />
+                                <ChevronDownIcon className=" -mr-4 w-1 h-1 text-gray-500" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-auto">
