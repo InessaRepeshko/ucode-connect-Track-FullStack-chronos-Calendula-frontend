@@ -1,4 +1,4 @@
-import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import {Toaster} from 'sonner';
 import LoginPage from "@/components/authentication/LoginPage.tsx";
 import RegisterPage from "@/components/authentication/RegisterPage.tsx";
@@ -15,6 +15,7 @@ export default function App() {
             <Toaster/>
             <AuthGuard>
                 <Routes>
+                    <Route path="/" element={<Navigate to="/calendar" replace />} />
                     <Route path="/login" element={<LoginPage/>}/>
                     <Route path="/register" element={<RegisterPage/>}/>
                     <Route path="/confirm-email/:confirm_token" element={<VerifyEmailPage/>}/>
@@ -22,19 +23,6 @@ export default function App() {
                     <Route path="/calendar" element={<MainPage/>}/>
                     <Route path="/new-event" element={<CreateEventPage/>}/>
                     <Route path="/edit-event" element={<CreateEventPage/>}/>
-                    {/*<Route path="/posts" element={<MainPage/>}/>*/}
-                    {/*<Route path="/posts/:post_id" element={<PostPage />} />*/}
-                    {/*<Route path="/categories" element={<CategoryList />} />*/}
-                    {/*<Route path="/categories/:category_id" element={<CategoryPage />} />*/}
-                    {/*<Route path="/users/:user_id" element={<UserPage />} />*/}
-                    {/*<Route path="/users" element={<UsersListPage />} />*/}
-                    {/*<Route path="/users/me" element={<UserPage />} />*/}
-                    {/*<Route path="/login" element={<LoginPage />} />*/}
-                    {/*<Route path="/register" element={<RegisterPage />} />*/}
-                    {/*<Route path="/verify-email/:confirm_token" element={<VerifyEmailPage />} />*/}
-                    {/*<Route path="/password-reset/:confirm_token" element={<ResetPasswordPage />} />*/}
-                    {/*<Route path="/profile" element={<UserPage />} />*/}
-                    {/*<Route path="/favorites" element={<FavoritesPage />} />*/}
                 </Routes>
             </AuthGuard>
         </Router>

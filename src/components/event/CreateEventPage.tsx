@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ColorPicker } from "@/components/calendar/ColorPiker.tsx";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -17,9 +16,8 @@ import {
     BriefcaseBusiness,
     CalendarFold,
     CalendarIcon,
-    ChevronDownIcon,
-    ClockIcon,
-    Palette, Sofa,
+    ClockIcon, Palette,
+    Sofa,
     Video,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -65,7 +63,6 @@ const CreateEventPage = () => {
     const [category, setCategory] = useState("work");
     const [type, setType] = useState("meeting");
     const [calendarId, setCalendarId] = useState<number | null>(null);
-    const [color, setColor] = useState("#D50000");
     const [startDate, setStartDate] = useState<Date | undefined>();
     const [startTime, setStartTime] = useState("");
     const [endDate, setEndDate] = useState<Date | undefined>();
@@ -73,22 +70,20 @@ const CreateEventPage = () => {
     const [allDay, setAllDay] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [creatorId, setCreatorId] = useState<number | null>(null); // ID создателя события
+    const [creatorId, setCreatorId] = useState<number | null>(null);
     const [notifyBeforeMinutes, setNotifyBeforeMinutes] = useState<number | undefined>(10);
 
-    const [isInitialized, setIsInitialized] = useState(false); // Флаг инициализации
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         console.log("First useEffect: Draft data", draft);
         if (draft?.eventId) {
-            // Режим редактирования
             setIsEditMode(true);
             setTitle(draft.title || "");
             setDescription(draft.description || "");
             setCategory(draft.category || "work");
             setType(draft.type || "meeting");
             setCalendarId(draft.calendarId || null);
-            setColor(draft.color || "#D50000");
             setStartDate(draft.startDate);
             setEndDate(draft.endDate);
             setStartTime(draft.startTime || "");
@@ -165,12 +160,10 @@ const CreateEventPage = () => {
             startAt: allDay ? `${formattedStartAt.split(" ")[0]} 00:00:00` : formattedStartAt,
             endAt: allDay ? `${formattedStartAt.split(" ")[0]} 23:59:59` : formattedEndAt,
             calendarId,
-            color,
             notifyBeforeMinutes,
         };
 
         setDraft({
-            ...draft,
             title,
             description,
             category,
@@ -180,7 +173,6 @@ const CreateEventPage = () => {
             startTime,
             endTime,
             calendarId,
-            color,
             selectedUsers,
             notifyBeforeMinutes,
             eventId: isEditMode ? draft.eventId : undefined,
@@ -236,7 +228,6 @@ const CreateEventPage = () => {
         return `${h}:${m}`;
     });
 
-    // Опции для напоминания
     const reminderOptions = [
         { label: "10 minutes", value: 10 },
         { label: "30 minutes", value: 30 },
@@ -372,35 +363,7 @@ const CreateEventPage = () => {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Popover>
-                                        <PopoverTrigger>
-                                            <Button
-                                                variant="outline"
-                                                className="flex items-center w-18 h-9 p-0 border space-x-1"
-                                            >
-                                                <div
-                                                    className="w-4.5 h-4.5 rounded-xl"
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                                <ChevronDownIcon className="w-3 h-3 text-gray-500" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="w-auto">
-                                            <div className="flex gap-2">
-                                                <ColorPicker selectedColor={color} onChange={setColor} />
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                </TooltipTrigger>
-                                <TooltipContent>Event color</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
 
-                    <div className="flex items-center space-x-2">
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger>
@@ -466,8 +429,6 @@ const CreateEventPage = () => {
                             </SelectContent>
                         </Select>
                     </div>
-
-
 
                     <Textarea
                         placeholder="Description"

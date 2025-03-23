@@ -73,11 +73,18 @@ const eventSlice = createSlice({
                 }
             }
         },
+        updateEventDateRedux: (state, action: PayloadAction<{ id: number; startAt: string; endAt: string }>) => {
+            const index = state.events.findIndex((event) => event.id === action.payload.id);
+            if (index !== -1) {
+                state.events[index].startAt = action.payload.startAt;
+                state.events[index].endAt = action.payload.endAt;
+            }
+        },
         setError: (state, action: PayloadAction<string | null>) => {
             state.error = action.payload;
         },
     },
 });
 
-export const { addEvent, setEvents, removeEvent, updateEventRedux, updateEventColor, setError } = eventSlice.actions;
+export const { addEvent, setEvents, removeEvent, updateEventRedux, updateEventColor, updateEventDateRedux,  setError } = eventSlice.actions;
 export default eventSlice.reducer;

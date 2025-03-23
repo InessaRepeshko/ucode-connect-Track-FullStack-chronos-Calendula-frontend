@@ -2,17 +2,16 @@ import * as React from "react";
 import {useEffect, useState} from "react";
 import {CalendarDays, CalendarFold, Plus} from "lucide-react";
 import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "@/components/redux/store";
+import {RootState} from "@/components/redux/store.ts";
 
-import {Calendars} from "@/components/calendars";
-import {DatePicker} from "@/components/date-picker";
-import {DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem} from "@/components/ui/dropdown-menu";
+import {Calendars} from "@/components/calendar/Calendars.tsx";
+import {DatePicker} from "@/components/calendar/DatePicker.tsx";
+import {DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem} from "@/components/ui/dropdown-menu.tsx";
 import {
     Sidebar,
     SidebarContent,
-    SidebarRail,
     SidebarSeparator,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar.tsx";
 import {ManageCalendarModal} from "@/components/calendar/ManageCalendarModal.tsx";
 import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
 import {Button} from "@/components/ui/button.tsx";
@@ -126,7 +125,6 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                     <SidebarSeparator className="mx-0"/>
                     <Calendars calendars={data}/>
                 </SidebarContent>
-                <SidebarRail/>
             </Sidebar>
             <ManageCalendarModal
                 isOpen={isCalendarModalOpen}

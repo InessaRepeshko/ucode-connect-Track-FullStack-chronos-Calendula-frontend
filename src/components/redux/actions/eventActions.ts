@@ -6,7 +6,7 @@ import {
     addEvent,
     setEvents,
     removeEvent,
-    updateEventRedux, updateEventColor
+    updateEventRedux, updateEventColor, updateEventDateRedux
 } from "@/components/redux/reducers/eventReducer.ts";
 
 interface ErrorResponse {
@@ -23,6 +23,11 @@ export interface EventPayload {
     startAt: string;
     endAt: string;
     notifyBeforeMinutes?: number;
+}
+
+export interface EventDatePayload {
+    startAt: string;
+    endAt: string;
 }
 
 export const getEvents = async (dispatch: Dispatch) => {
@@ -103,6 +108,25 @@ export const updateEventColorApi = async (dispatch: Dispatch, eventId: number, c
         const axiosError = error as AxiosError<ErrorResponse>;
         dispatch(setError(axiosError.response?.data?.message || null));
         return { success: false, error: axiosError.response?.data?.message || null };
+    }
+};
+
+export const updateEventDate = async (dispatch: Dispatch, eventId: number, payload: EventDatePayload) => {
+    try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.patch(`/events/${eventId}/date/`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        dispatch(updateEventDateRedux({ id: eventId, startAt: payload.startAt, endAt: payload.endAt }));
+        return { success: true, data: data.data, errors: {} };
+    } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        dispatch(setError(axiosError.response?.data?.message || null));
+        return {
+            success: false,
+            errors: axiosError.response?.data?.validationErrors || axiosError.response?.data?.message,
+        };
     }
 };
 

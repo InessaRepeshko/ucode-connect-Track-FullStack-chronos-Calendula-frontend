@@ -1,6 +1,6 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/calendar/AppSidebar.tsx";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import CustomCalendar from "@/components/CustomCalendar.tsx";
+import CustomCalendar, { EventType } from "@/components/calendar/CustomCalendar.tsx";
 import { useState, useCallback } from "react"; // Добавляем useCallback
 import CustomToolbarFullCalendar from "@/components/calendar/CustomToolbarFullCalendar.tsx";
 
@@ -14,6 +14,8 @@ export default function MainPage() {
     } | null>(null);
     const [calendarTitle, setCalendarTitle] = useState<string>("");
     const [currentView, setCurrentView] = useState<string>("timeGridWeek");
+    const [events, setEvents] = useState<EventType[]>([]); // Состояние для событий
+    const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
 
     const handleCalendarApiReady = useCallback((api: {
         prev: () => void;
@@ -36,6 +38,16 @@ export default function MainPage() {
         setCurrentView(view);
     }, []);
 
+    const handleEventsChange = useCallback((newEvents: EventType[]) => {
+        console.log("Events changed:", newEvents);
+        setEvents(newEvents);
+    }, []);
+
+    const handleEventSelect = useCallback((event: any) => {
+        console.log("Event selected from search:", event);
+        setSelectedEvent(event);
+    }, []);
+
     console.log("MainPage rendered");
 
     return (
@@ -47,6 +59,8 @@ export default function MainPage() {
                         calendarApi={calendarApi}
                         title={calendarTitle}
                         currentView={currentView}
+                        events={events} // Передаем события
+                        onEventSelect={handleEventSelect} // Передаем callback для выбора события
                     />
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4">
@@ -54,6 +68,9 @@ export default function MainPage() {
                         onCalendarApiReady={handleCalendarApiReady}
                         onTitleChange={handleTitleChange}
                         onViewChange={handleViewChange}
+                        onEventsChange={handleEventsChange} // Передаем обработчик событий
+                        selectedEvent={selectedEvent} // Передаем выбранное событие
+                        onEventSelect={handleEventSelect}
                     />
                 </div>
             </SidebarInset>

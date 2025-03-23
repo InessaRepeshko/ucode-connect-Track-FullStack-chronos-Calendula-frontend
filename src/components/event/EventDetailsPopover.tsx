@@ -61,7 +61,6 @@ interface EventDetailsPopoverProps {
     currentUserId?: number;
     onAttendanceChange?: (userId: number, status: "yes" | "no" | "maybe" | undefined) => void;
     onColorChange?: (eventId: string, newColor: string) => void;
-    calendarColor: string;
 }
 
 export default function EventDetailsPopover({
@@ -105,9 +104,9 @@ export default function EventDetailsPopover({
     const isSpecialCalendar = event.calendarType === "holidays" || event.calendarType === "birthdays";
 
     const typeIcons: { [key: string]: JSX.Element } = {
-        meeting: <Video strokeWidth={3} className="w-4 h-4 mr-1 mt-1" />,
-        reminder: <BellRing strokeWidth={3} className="w-4 h-4 mr-1" />,
-        task: <BookmarkCheck strokeWidth={3} className="w-4 h-4 mr-1" />,
+        meeting: <Video strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5" />,
+        reminder: <BellRing strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5" />,
+        task: <BookmarkCheck strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5" />,
     };
 
     const categoryIcons: { [key: string]: JSX.Element } = {

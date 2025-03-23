@@ -4,14 +4,14 @@ import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/collapsible.tsx";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu.tsx";
 import {
     SidebarGroup,
     SidebarGroupContent,
@@ -21,7 +21,7 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar.tsx";
 import { ColorPicker } from "@/components/calendar/ColorPiker.tsx";
 import { ManageCalendarModal } from "@/components/calendar/ManageCalendarModal.tsx";
 import { useDispatch, useSelector } from "react-redux";
