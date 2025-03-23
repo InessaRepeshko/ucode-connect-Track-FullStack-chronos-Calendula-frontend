@@ -122,10 +122,10 @@ export function Calendars({ calendars }: CalendarsProps) {
 
     return (
         <>
-            {calendars.map((calendar, index) => (
+            {calendars.map((calendar) => (
                 <React.Fragment key={calendar.name}>
                     <SidebarGroup className="py-0">
-                        <Collapsible defaultOpen={index === 0} className="group/collapsible">
+                        <Collapsible defaultOpen={true} className="group/collapsible">
                             <SidebarGroupLabel
                                 asChild
                                 className="group/label flex items-center justify-between text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full text-sm px-2 py-1"
