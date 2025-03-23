@@ -5,8 +5,8 @@ import {
 } from "@/components/ui/sidebar.tsx";
 
 interface DatePickerProps {
-    selected?: Date; // Пропс для текущей выбранной даты
-    onDateSelect?: (date: Date) => void; // Пропс для передачи выбранной даты
+    selected?: Date;
+    onDateSelect?: (date: Date) => void;
 }
 
 export function DatePicker({ selected, onDateSelect }: DatePickerProps) {
@@ -14,11 +14,11 @@ export function DatePicker({ selected, onDateSelect }: DatePickerProps) {
         <SidebarGroup className="px-0">
             <SidebarGroupContent>
                 <Calendar
-                    mode="single" // Режим выбора одной даты
-                    selected={selected} // Управляем выделением через пропс
+                    mode="single"
+                    selected={selected}
                     onSelect={(date) => {
                         if (date && onDateSelect) {
-                            onDateSelect(date); // Передаём выбранную дату наверх
+                            onDateSelect(date);
                         }
                     }}
                     className="[&_[role=gridcell].bg-accent]:bg-sidebar-primary [&_[role=gridcell].bg-accent]:text-sidebar-primary-foreground [&_[role=gridcell]]:w-[33px]"

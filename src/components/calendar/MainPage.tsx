@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/calendar/AppSidebar.tsx";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import CustomCalendar, { EventType } from "@/components/calendar/CustomCalendar.tsx";
-import { useState, useCallback } from "react"; // Добавляем useCallback
+import { useState, useCallback } from "react";
 import CustomToolbarFullCalendar from "@/components/calendar/CustomToolbarFullCalendar.tsx";
 
 export default function MainPage() {
@@ -59,8 +59,8 @@ export default function MainPage() {
                         calendarApi={calendarApi}
                         title={calendarTitle}
                         currentView={currentView}
-                        events={events} // Передаем события
-                        onEventSelect={handleEventSelect} // Передаем callback для выбора события
+                        events={events}
+                        onEventSelect={handleEventSelect}
                     />
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4">
@@ -68,8 +68,8 @@ export default function MainPage() {
                         onCalendarApiReady={handleCalendarApiReady}
                         onTitleChange={handleTitleChange}
                         onViewChange={handleViewChange}
-                        onEventsChange={handleEventsChange} // Передаем обработчик событий
-                        selectedEvent={selectedEvent} // Передаем выбранное событие
+                        onEventsChange={handleEventsChange}
+                        selectedEvent={selectedEvent}
                         onEventSelect={handleEventSelect}
                     />
                 </div>

@@ -236,7 +236,7 @@ const CreateEventPage = () => {
     ];
 
     return (
-        <div className="max-w-188 mx-auto p-6">
+        <div className="max-w-195 mx-auto p-6">
             <Card>
                 <CardContent className="space-y-4">
                     <Input
@@ -269,7 +269,7 @@ const CreateEventPage = () => {
                             </Popover>
 
                             <Select onValueChange={setStartTime} disabled={allDay} value={startTime}>
-                                <SelectTrigger className="w-27 cursor-pointer disabled:cursor-default">
+                                <SelectTrigger className="w-29 cursor-pointer disabled:cursor-default">
                                     <ClockIcon className="mr-0 h-4 w-4" />
                                     <SelectValue placeholder="Time" />
                                 </SelectTrigger>
@@ -308,7 +308,7 @@ const CreateEventPage = () => {
                             </Popover>
 
                             <Select onValueChange={setEndTime} disabled={allDay} value={endTime}>
-                                <SelectTrigger className="w-27 cursor-pointer disabled:cursor-default">
+                                <SelectTrigger className="w-29 cursor-pointer disabled:cursor-default">
                                     <ClockIcon className="mr-0 h-4 w-4" />
                                     <SelectValue placeholder="Time" />
                                 </SelectTrigger>

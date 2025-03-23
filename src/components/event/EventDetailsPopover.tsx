@@ -79,7 +79,7 @@ export default function EventDetailsPopover({
     const currentUserParticipant = event.participants.find(
         (p) => p.id === currentUserId
     );
-    const initialColor = event.color || currentUserParticipant?.color || "#AD1457";
+    const initialColor = event.color || currentUserParticipant?.color || "#039BE5";
     const [color, setColor] = React.useState<string>(initialColor);
 
     // Синхронизируем локальное состояние color с цветом текущего пользователя
@@ -87,7 +87,7 @@ export default function EventDetailsPopover({
         const updatedCurrentUserParticipant = event.participants.find(
             (p) => p.id === currentUserId
         );
-        const updatedColor = event.color || updatedCurrentUserParticipant?.color || "#AD1457";
+        const updatedColor = event.color || updatedCurrentUserParticipant?.color || "#039BE5";
         setColor(updatedColor);
     }, [event.color, event.participants, currentUserId]);
 
@@ -185,7 +185,7 @@ export default function EventDetailsPopover({
     return (
         <Popover open={true} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
-                className="w-[385px] h-auto p-4 space-y-3 bg-white border rounded-lg shadow-lg"
+                className="w-[390px] h-auto p-4 space-y-3 bg-white border rounded-lg shadow-lg"
                 style={{ position: "absolute", top: position.y, left: position.x }}
             >
                 <div className="flex justify-between items-center">

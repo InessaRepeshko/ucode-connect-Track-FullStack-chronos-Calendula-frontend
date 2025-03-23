@@ -78,7 +78,7 @@ interface CustomCalendarProps {
     onEventSelect?: (event: any) => void;
 }
 
-const DEFAULT_CALENDAR_COLOR = "#AD1457";
+const DEFAULT_CALENDAR_COLOR = "#039BE5";
 
 export default function CustomCalendar({
                                            onCalendarApiReady,
@@ -151,11 +151,9 @@ export default function CustomCalendar({
     const handleAttendanceChange = async (userId: number, status: "yes" | "no" | "maybe" | undefined) => {
         if (selectedEvent) {
             const eventId = parseInt(selectedEvent.id);
-            const calendarId = selectedEvent.calendarId || 0; // Значение по умолчанию
+            const calendarId = selectedEvent.calendarId || 0;
             const calendarColor = getCalendarColor(calendarId);
             const eventColor = selectedEvent.color || calendarColor;
-
-            console.log(`handleAttendanceChange - eventId: ${eventId}, status: ${status}, calendarId: ${calendarId}, calendarColor: ${calendarColor}, eventColor: ${eventColor}`);
 
             const updatedParticipants = selectedEvent.participants.map((p: any) =>
                 p.id === userId ? { ...p, attendanceStatus: status } : p
@@ -174,13 +172,10 @@ export default function CustomCalendar({
                     result = await tentativeEvent(eventId);
                     break;
                 default:
-                    console.warn("No status provided, skipping server update");
                     return;
             }
 
             if (result.success) {
-                console.log(`Attendance change successful, updating events with color: ${eventColor}`);
-
                 const currentEvent = events.find(event => event.id === selectedEvent.id);
                 if (!currentEvent) return;
 
@@ -191,7 +186,7 @@ export default function CustomCalendar({
                     extendedProps: {
                         ...currentEvent.extendedProps,
                         attendanceStatus: status,
-                        calendarId: currentEvent.extendedProps?.calendarId || 0, // Убеждаемся, что calendarId определён
+                        calendarId: currentEvent.extendedProps?.calendarId || 0,
                     },
                 };
 
@@ -247,7 +242,6 @@ export default function CustomCalendar({
                     let borderColor = eventColor;
                     let textColor = eventColor;
 
-                    // Если тип календаря holidays или birthday, всегда как "yes"
                     if (calendar.type === "holidays" || calendar.type === "birthday") {
                         backgroundColor = eventColor;
                         textColor = "#ffffff";
@@ -378,7 +372,7 @@ export default function CustomCalendar({
                 ...currentEvent.extendedProps,
                 color: newColor,
                 calendarColor,
-                calendarId: currentEvent.extendedProps?.calendarId || 0, // Убеждаемся, что calendarId определён
+                calendarId: currentEvent.extendedProps?.calendarId || 0,
             },
         };
 
@@ -626,7 +620,6 @@ export default function CustomCalendar({
         }
     };
 
-    // Удаляем неиспользуемую переменную activeEventId
     const getMainCalendarColor = () => {
         const mainCalendar = calendars.find((cal) => cal.type === "main");
         if (mainCalendar && currentUser?.id) {
@@ -698,7 +691,7 @@ export default function CustomCalendar({
                         const el = info.el as HTMLElement;
                         el.setAttribute("data-event-id", info.event.id);
                         const attendanceStatus = info.event.extendedProps?.attendanceStatus;
-                        const calendarColor = info.event.extendedProps?.calendarColor || "#AD1457";
+                        const calendarColor = info.event.extendedProps?.calendarColor || "#039BE5";
                         const eventColor = info.event.extendedProps?.color || calendarColor;
                         const calendarType = info.event.extendedProps?.calendarType;
 
@@ -706,7 +699,6 @@ export default function CustomCalendar({
                             el.classList.add("event-with-stripe");
                         }
 
-                        // Если тип календаря holidays или birthday, стили как для "yes"
                         if (calendarType === "holidays" || calendarType === "birthday") {
                             el.style.backgroundImage = "none";
                             el.style.backgroundColor = eventColor;
@@ -847,7 +839,7 @@ export default function CustomCalendar({
                             const currentUserParticipant = response.data.participants.find(
                                 (p: any) => p.userId === currentUser?.id
                             );
-                            const calendarId = response.data.calendarId || 0; // Значение по умолчанию
+                            const calendarId = response.data.calendarId || 0;
                             const calendarColor = getCalendarColor(calendarId);
                             const eventColor = currentUserParticipant?.color || calendarColor;
 
@@ -860,7 +852,7 @@ export default function CustomCalendar({
                                 category: response.data.category,
                                 type: response.data.type,
                                 calendarId: calendarId,
-                                calendarColor: calendarColor, // Добавляем calendarColor
+                                calendarColor: calendarColor,
                                 color: eventColor,
                                 creationByUserId: response.data.creationByUserId,
                                 calendarTitle: response.data.calendar.title,
@@ -886,7 +878,7 @@ export default function CustomCalendar({
                             };
 
                             setSelectedEvent(eventData);
-                            setIsFromSearch(false); // Событие из календаря
+                            setIsFromSearch(false);
                             if (onEventSelect) onEventSelect(eventData);
                             setTempEventId(null);
                             setIsPositionReady(false);
@@ -903,14 +895,12 @@ export default function CustomCalendar({
                         const calendarType = arg.event.extendedProps?.calendarType;
 
                         const textStyle = {
-                            // Если тип календаря holidays или birthday, текст всегда белый
                             color: (calendarType === "holidays" || calendarType === "birthday")
                                 ? "#ffffff"
                                 : (arg.isMirror ? "#ffffff" : (attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : eventColor)),
                             textDecoration: attendanceStatus === "no" ? "line-through" : "none",
                         };
 
-                        // Определяем иконку по типу события
                         let EventIcon;
                         switch (eventType) {
                             case "meeting":
@@ -926,7 +916,6 @@ export default function CustomCalendar({
                                 EventIcon = null;
                         }
 
-                        // Определяем иконку по типу календаря (приоритет выше)
                         let CalendarIcon;
                         switch (calendarType) {
                             case "birthday":

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import soloImage from "../../assets/logo_white.png";
+import LogoImage from "../../assets/logo_white.png";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -61,7 +61,7 @@ export default function LoginPage({ className, ...props }: React.ComponentProps<
                         <CardContent className="grid p-0 md:grid-cols-2">
                             <div className="relative hidden bg-muted md:block flex items-center justify-center">
                                 <img
-                                    src={soloImage}
+                                    src={LogoImage}
                                     alt="Image"
                                     className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale bg-white"
                                 />

@@ -52,7 +52,7 @@ interface CalendarsProps {
     }[];
 }
 
-const DEFAULT_CALENDAR_COLOR = "#AD1457";
+const DEFAULT_CALENDAR_COLOR = "#039BE5";
 
 export function Calendars({ calendars }: CalendarsProps) {
     const dispatch = useDispatch();

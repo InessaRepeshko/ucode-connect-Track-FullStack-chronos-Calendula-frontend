@@ -31,8 +31,8 @@ export function NavUser({
     fullName: string;
     email: string;
     profilePicture: string;
-    country?: string; // Сделали опциональным
-    birthday?: string; // Сделали опциональным
+    country?: string;
+    birthday?: string;
   };
 }) {
   const { isMobile } = useSidebar();
