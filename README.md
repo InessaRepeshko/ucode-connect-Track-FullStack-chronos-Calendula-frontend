@@ -33,9 +33,9 @@ The Calendula project is designed for convenient task and event planning. It com
 
 ### ⚙️ Installation
 
-1. Run the calendula-backend;
+1. Run the calendula-backend.
 
-2. Go to the project folder;
+2. Go to the project folder.
 
 3. Install the dependencies:
 ```sh

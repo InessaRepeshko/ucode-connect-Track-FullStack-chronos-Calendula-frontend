@@ -281,7 +281,7 @@ export default function EventDetailsPopover({
                                         </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Calendar: {event.calendarTitle}</p>
+                                        <p>Calendar '{event.calendarTitle}'</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

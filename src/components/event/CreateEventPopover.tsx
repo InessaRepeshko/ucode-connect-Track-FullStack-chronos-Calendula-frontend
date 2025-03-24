@@ -1,21 +1,22 @@
-import { FormEvent, useEffect, useState } from "react";
-import { Popover, PopoverContent } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/components/redux/store";
-import { getUsers } from "@/components/redux/actions/userActions.ts";
-import { UiMessages } from "@/constants/uiMessages.ts";
-import { createEvent, EventPayload } from "@/components/redux/actions/eventActions.ts";
-import { showErrorToasts, showSuccessToast } from "@/components/utils/ToastNotifications.tsx";
-import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
-import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
+import {FormEvent, useEffect, useState} from "react";
+import {Popover, PopoverContent} from "@/components/ui/popover";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Button} from "@/components/ui/button";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "@/components/redux/store";
+import {getUsers} from "@/components/redux/actions/userActions.ts";
+import {UiMessages} from "@/constants/uiMessages.ts";
+import {createEvent, EventPayload} from "@/components/redux/actions/eventActions.ts";
+import {showErrorToasts, showSuccessToast} from "@/components/utils/ToastNotifications.tsx";
+import {ToastStatusMessages} from "@/constants/toastStatusMessages.ts";
+import {format} from "date-fns";
+import {useNavigate} from "react-router-dom";
 import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
 import {BellRing, BookmarkCheck, CalendarFold, Video, X} from "lucide-react";
 import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
 import UserSelector from "@/components/utils/UserSelector.tsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 interface User {
     id: number;
@@ -33,10 +34,10 @@ interface CreateEventPopoverProps {
     onClose: () => void;
 }
 
-const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }: CreateEventPopoverProps) => {
+const CreateEventPopover = ({selectedDate, endDate, position, onSave, onClose}: CreateEventPopoverProps) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { setDraft } = useEventDraft();
+    const {setDraft} = useEventDraft();
     const calendars = useSelector((state: RootState) => state.calendars.calendars);
     const [title, setTitle] = useState("");
     const [calendarId, setCalendarId] = useState<number | null>(null);
@@ -94,7 +95,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
             endAt: formattedEndAt,
         };
 
-        const result = await createEvent(dispatch, payload, selectedUsers.map(({ id}) => ({ userId: id})));
+        const result = await createEvent(dispatch, payload, selectedUsers.map(({id}) => ({userId: id})));
 
         if (result.success) {
             await getCalendars(dispatch);
@@ -111,21 +112,21 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
             await getUsers(dispatch);
         })();
         if (currentUser && !selectedUsers.some((u) => u.id === currentUser.id)) {
-            setSelectedUsers([{ ...currentUser, role: "owner" }]);
+            setSelectedUsers([{...currentUser, role: "owner"}]);
         }
     }, [dispatch]);
 
     const editableCalendars = calendars.filter((calendar) =>
-            calendar.participants.some(
-                (p) => p.userId === currentUser.id && p.role !== "viewer"
-            )
-        );
+        calendar.participants.some(
+            (p) => p.userId === currentUser.id && p.role !== "viewer"
+        )
+    );
 
     return (
         <Popover open={Boolean(selectedDate)} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
                 className="w-[430px] h-[390px] p-6 space-y-4 relative"
-                style={position ? { position: "absolute", top: position.y, left: position.x } : undefined}
+                style={position ? {position: "absolute", top: position.y, left: position.x} : undefined}
             >
                 <Button
                     variant="ghost"
@@ -133,7 +134,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                     className="absolute top-0 right-0"
                     onClick={onClose}
                 >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4"/>
                 </Button>
 
                 <Input
@@ -146,41 +147,70 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                 />
 
                 <div className="flex items-center space-x-2">
-                    <Select onValueChange={(value) => setCalendarId(Number(value))} value={calendarId?.toString() || ""}>
-                        <SelectTrigger>
-                            <CalendarFold strokeWidth={3} />
-                            <SelectValue placeholder="Calendar">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Select
+                                    onValueChange={(value) => setCalendarId(Number(value))}
+                                    value={calendarId?.toString() || ""}
+                                >
+                                    <SelectTrigger>
+                                        <CalendarFold strokeWidth={3}/>
+                                        <SelectValue placeholder="Calendar">
+                                            {calendarId
+                                                ? (() => {
+                                                    const selectedCalendar = calendars.find(
+                                                        (calendar) => calendar.id === calendarId
+                                                    );
+                                                    if (selectedCalendar) {
+                                                        const title = selectedCalendar.title;
+                                                        return `${title.slice(0, 20)}${title.length > 20 ? "..." : ""}`;
+                                                    }
+                                                    return "Calendar";
+                                                })()
+                                                : "Calendar"}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {editableCalendars.map((calendar) => (
+                                            <SelectItem key={calendar.id} value={String(calendar.id)}>
+                                                {calendar.title}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                Calendar{' '}
                                 {calendarId
                                     ? (() => {
-                                        const selectedCalendar = calendars.find((calendar) => calendar.id === calendarId);
-                                        if (selectedCalendar) {
-                                            const title = selectedCalendar.title;
-                                            return `${title.slice(0, 20)}${title.length > 20 ? "..." : ""}`;
-                                        }
-                                        return "Calendar";
+                                        const selectedCalendar = calendars.find(
+                                            (calendar) => calendar.id === calendarId
+                                        );
+                                        return selectedCalendar ? `'${selectedCalendar.title}'` : "'Calendar'";
                                     })()
-                                    : "Calendar"}
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {editableCalendars.map((calendar) => (
-                                <SelectItem key={calendar.id} value={String(calendar.id)}>
-                                    {calendar.title}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                                    : "'Calendar'"}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
-                    <Select onValueChange={setType} defaultValue={type}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="meeting"><Video strokeWidth={3} />Meeting</SelectItem>
-                            <SelectItem value="reminder"><BellRing strokeWidth={3} />Reminder</SelectItem>
-                            <SelectItem value="task"><BookmarkCheck strokeWidth={3} />Task</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Select onValueChange={setType} defaultValue={type}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Type"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="meeting"><Video strokeWidth={3}/>Meeting</SelectItem>
+                                        <SelectItem value="reminder"><BellRing strokeWidth={3}/>Reminder</SelectItem>
+                                        <SelectItem value="task"><BookmarkCheck strokeWidth={3}/>Task</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </TooltipTrigger>
+                            <TooltipContent>Type</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
 
                 <UserSelector
