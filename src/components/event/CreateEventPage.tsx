@@ -270,109 +270,82 @@ const CreateEventPage = () => {
 
                     <div className="flex items-center space-x-1">
                         <div className="flex items-center space-x-2">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Popover open={openStartCalendar} onOpenChange={setOpenStartCalendar}>
-                                            <PopoverTrigger>
-                                                <Button variant="outline" className="w-40 font-normal">
-                                                    <CalendarIcon strokeWidth={3} className="ml-0 h-4 w-4"
-                                                                  style={{color: "#727272"}}/>
-                                                    {startDate ? format(startDate, "PPP") : "Start date"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={startDate}
-                                                    onSelect={(date) => {
-                                                        setStartDate(date);
-                                                        setOpenStartCalendar(false);
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Calendar: Start Date</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Popover open={openStartCalendar} onOpenChange={setOpenStartCalendar}>
+                                <PopoverTrigger>
+                                    <Button variant="outline" className="w-40 font-normal">
+                                        <CalendarIcon strokeWidth={3} className="ml-0 h-4 w-4"
+                                                      style={{color: "#727272"}}/>
+                                        {startDate ? format(startDate, "PPP") : "Start date"}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={startDate}
+                                        onSelect={(date) => {
+                                            setStartDate(date);
+                                            setOpenStartCalendar(false);
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
 
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Select onValueChange={setStartTime} disabled={allDay} value={startTime}>
-                                            <SelectTrigger className="w-29 cursor-pointer disabled:cursor-default">
-                                                <ClockIcon strokeWidth={3} className="mr-0 h-4 w-4"/>
-                                                <SelectValue placeholder="Time"/>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <ScrollArea className="h-48">
-                                                    {timeOptions.map((time) => (
-                                                        <SelectItem key={time} value={time}>
-                                                            {time}
-                                                        </SelectItem>
-                                                    ))}
-                                                </ScrollArea>
-                                            </SelectContent>
-                                        </Select>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Time: Start Time</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+
+                            <Select onValueChange={setStartTime} disabled={allDay} value={startTime}>
+                                <SelectTrigger className="w-29 cursor-pointer disabled:cursor-default">
+                                    <ClockIcon strokeWidth={3} className="mr-0 h-4 w-4"/>
+                                    <SelectValue placeholder="Time"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <ScrollArea className="h-48">
+                                        {timeOptions.map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                {time}
+                                            </SelectItem>
+                                        ))}
+                                    </ScrollArea>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <span className="text-gray-500 mx-2">to</span>
 
                         <div className="flex items-center space-x-2">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Popover open={openEndCalendar} onOpenChange={setOpenEndCalendar}>
-                                            <PopoverTrigger className="ms-1">
-                                                <Button variant="outline" className="w-40 font-normal">
-                                                    <CalendarIcon strokeWidth={3} className="ml-0 h-4 w-4"
-                                                                  style={{color: "#727272"}}/>
-                                                    {endDate ? format(endDate, "PPP") : "End date"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={endDate}
-                                                    onSelect={(date) => {
-                                                        setEndDate(date);
-                                                        setOpenEndCalendar(false);
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Calendar: End Date</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Popover open={openEndCalendar} onOpenChange={setOpenEndCalendar}>
+                                <PopoverTrigger className="ms-1">
+                                    <Button variant="outline" className="w-40 font-normal">
+                                        <CalendarIcon strokeWidth={3} className="ml-0 h-4 w-4"
+                                                      style={{color: "#727272"}}/>
+                                        {endDate ? format(endDate, "PPP") : "End date"}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={endDate}
+                                        onSelect={(date) => {
+                                            setEndDate(date);
+                                            setOpenEndCalendar(false);
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
 
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Select onValueChange={setEndTime} disabled={allDay} value={endTime}>
-                                            <SelectTrigger className="w-29 cursor-pointer disabled:cursor-default">
-                                                <ClockIcon strokeWidth={3} className="mr-0 h-4 w-4"/>
-                                                <SelectValue placeholder="Time"/>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <ScrollArea className="h-48">
-                                                    {timeOptions.map((time) => (
-                                                        <SelectItem key={time} value={time}>
-                                                            {time}
-                                                        </SelectItem>
-                                                    ))}
-                                                </ScrollArea>
-                                            </SelectContent>
-                                        </Select>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Time: End Time</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Select onValueChange={setEndTime} disabled={allDay} value={endTime}>
+                                <SelectTrigger className="w-29 cursor-pointer disabled:cursor-default">
+                                    <ClockIcon strokeWidth={3} className="mr-0 h-4 w-4"/>
+                                    <SelectValue placeholder="Time"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <ScrollArea className="h-48">
+                                        {timeOptions.map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                {time}
+                                            </SelectItem>
+                                        ))}
+                                    </ScrollArea>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <Toggle
                             pressed={allDay}
@@ -473,22 +446,22 @@ const CreateEventPage = () => {
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger>
-                        <Select
-                            onValueChange={(value) => setNotifyBeforeMinutes(Number(value))}
-                            value={notifyBeforeMinutes?.toString()}
-                        >
-                            <SelectTrigger className="w-auto cursor-pointer">
-                                <BellRing strokeWidth={3} className="mr-2 h-4 w-4"/>
-                                <SelectValue placeholder="Reminder"/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {reminderOptions.map((option) => (
-                                    <SelectItem key={option.value} value={option.value.toString()}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                    <Select
+                                        onValueChange={(value) => setNotifyBeforeMinutes(Number(value))}
+                                        value={notifyBeforeMinutes?.toString()}
+                                    >
+                                        <SelectTrigger className="w-auto cursor-pointer">
+                                            <BellRing strokeWidth={3} className="mr-2 h-4 w-4"/>
+                                            <SelectValue placeholder="Reminder"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {reminderOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value.toString()}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </TooltipTrigger>
                                 <TooltipContent>Reminder</TooltipContent>
                             </Tooltip>
