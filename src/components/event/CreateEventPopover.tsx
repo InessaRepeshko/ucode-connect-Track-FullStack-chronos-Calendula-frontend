@@ -154,7 +154,7 @@ const CreateEventPopover = ({selectedDate, endDate, position, onSave, onClose}: 
                                     onValueChange={(value) => setCalendarId(Number(value))}
                                     value={calendarId?.toString() || ""}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="cursor-pointer">
                                         <CalendarFold strokeWidth={3}/>
                                         <SelectValue placeholder="Calendar">
                                             {calendarId
@@ -173,7 +173,7 @@ const CreateEventPopover = ({selectedDate, endDate, position, onSave, onClose}: 
                                     </SelectTrigger>
                                     <SelectContent>
                                         {editableCalendars.map((calendar) => (
-                                            <SelectItem key={calendar.id} value={String(calendar.id)}>
+                                            <SelectItem className="cursor-pointer" key={calendar.id} value={String(calendar.id)}>
                                                 {calendar.title}
                                             </SelectItem>
                                         ))}
@@ -198,13 +198,13 @@ const CreateEventPopover = ({selectedDate, endDate, position, onSave, onClose}: 
                         <Tooltip>
                             <TooltipTrigger>
                                 <Select onValueChange={setType} defaultValue={type}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="cursor-pointer">
                                         <SelectValue placeholder="Type"/>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="meeting"><Video strokeWidth={3}/>Meeting</SelectItem>
-                                        <SelectItem value="reminder"><BellRing strokeWidth={3}/>Reminder</SelectItem>
-                                        <SelectItem value="task"><BookmarkCheck strokeWidth={3}/>Task</SelectItem>
+                                        <SelectItem value="meeting" className="cursor-pointer"><Video strokeWidth={3}/>Meeting</SelectItem>
+                                        <SelectItem value="reminder" className="cursor-pointer"><BellRing strokeWidth={3}/>Reminder</SelectItem>
+                                        <SelectItem value="task" className="cursor-pointer"><BookmarkCheck strokeWidth={3}/>Task</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </TooltipTrigger>

@@ -336,13 +336,13 @@ export default function CustomToolbarFullCalendar({
                     onValueChange={handleViewChange}
                     disabled={!calendarApi}
                 >
-                    <SelectTrigger className="text-[16px] py-5 px-5 rounded-full font-medium">
+                    <SelectTrigger className="text-[16px] py-5 px-5 rounded-full font-medium cursor-pointer">
                         <SelectValue placeholder="Выберите вид" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Month">Month</SelectItem>
-                        <SelectItem value="Week">Week</SelectItem>
-                        <SelectItem value="Day">Day</SelectItem>
+                        <SelectItem value="Month" className="cursor-pointer">Month</SelectItem>
+                        <SelectItem value="Week" className="cursor-pointer">Week</SelectItem>
+                        <SelectItem value="Day" className="cursor-pointer">Day</SelectItem>
                     </SelectContent>
                 </Select>
                 <SidebarHeader>

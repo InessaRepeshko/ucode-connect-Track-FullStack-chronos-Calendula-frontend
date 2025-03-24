@@ -367,7 +367,7 @@ const CreateEventPage = () => {
                                     >
                                         <SelectTrigger className="cursor-pointer disabled:cursor-default">
                                             <CalendarFold strokeWidth={3}/>
-                                            <SelectValue placeholder="Calendar">
+                                            <SelectValue placeholder="Calendar" >
                                                 {calendarId
                                                     ? (() => {
                                                         const selectedCalendar = calendars.find(
@@ -384,7 +384,7 @@ const CreateEventPage = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {editableCalendars.map((calendar) => (
-                                                <SelectItem key={calendar.id} value={String(calendar.id)}>
+                                                <SelectItem className="cursor-pointer" key={calendar.id} value={String(calendar.id)}>
                                                     {calendar.title}
                                                 </SelectItem>
                                             ))}
@@ -403,13 +403,13 @@ const CreateEventPage = () => {
                                             <SelectValue placeholder="Выберите тип"/>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="meeting">
+                                            <SelectItem value="meeting" className="cursor-pointer">
                                                 <Video strokeWidth={3}/>Meeting
                                             </SelectItem>
-                                            <SelectItem value="reminder">
+                                            <SelectItem value="reminder" className="cursor-pointer">
                                                 <BellRing strokeWidth={3}/>Reminder
                                             </SelectItem>
-                                            <SelectItem value="task">
+                                            <SelectItem value="task" className="cursor-pointer">
                                                 <BookmarkCheck strokeWidth={3}/>Task
                                             </SelectItem>
                                         </SelectContent>
@@ -427,13 +427,13 @@ const CreateEventPage = () => {
                                             <SelectValue/>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="work">
+                                            <SelectItem value="work" className="cursor-pointer">
                                                 <BriefcaseBusiness strokeWidth={3}/>Work
                                             </SelectItem>
-                                            <SelectItem value="home">
+                                            <SelectItem value="home" className="cursor-pointer">
                                                 <Sofa strokeWidth={3}/>Home
                                             </SelectItem>
-                                            <SelectItem value="hobby">
+                                            <SelectItem value="hobby" className="cursor-pointer">
                                                 <Palette strokeWidth={3}/>Hobby
                                             </SelectItem>
                                         </SelectContent>
@@ -456,7 +456,7 @@ const CreateEventPage = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {reminderOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.value.toString()}>
+                                                <SelectItem className="cursor-pointer" key={option.value} value={option.value.toString()}>
                                                     {option.label}
                                                 </SelectItem>
                                             ))}

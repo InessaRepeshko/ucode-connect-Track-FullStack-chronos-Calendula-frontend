@@ -102,12 +102,12 @@ export function AppSidebar({ onDateSelect, externalDate, ...props }: AppSidebarP
 
                 <DropdownMenu>
                     <div className="flex mt-4 px-4">
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger className="w-full">
                             <Button
                                 variant="outline"
-                                className="flex items-center justify-center gap-1 font-semibold !px-6 !py-6 rounded-xl"
+                                className="flex items-center justify-center gap-1 font-semibold !px-6 !py-6 rounded-full w-full"
                             >
-                                <Plus className="size-5"/>
+                                <Plus className="size-5" />
                                 <span className="text-[16px]">Create</span>
                             </Button>
                         </DropdownMenuTrigger>
