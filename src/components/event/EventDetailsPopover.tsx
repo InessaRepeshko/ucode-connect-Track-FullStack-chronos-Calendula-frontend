@@ -303,32 +303,35 @@ export default function EventDetailsPopover({
                         </Tooltip>
                     </TooltipProvider>
 
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Popover>
-                                    <PopoverTrigger>
-                                        <Button
-                                            variant="outline"
-                                            className="flex items-center w-13 h-7 border"
-                                        >
-                                            <div
-                                                className="-ml-4 w-4 h-4 rounded-xl"
-                                                style={{backgroundColor: color}}
-                                            />
-                                            <ChevronDownIcon className=" -mr-4 w-1 h-1 text-gray-500"/>
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent align="start" className="w-auto" onOpenAutoFocus={(event) => event.preventDefault()}>
-                                        <div className="flex gap-2">
-                                            <ColorPicker selectedColor={color} onChange={handleColorChange} />
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            </TooltipTrigger>
-                            <TooltipContent>Event color</TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    {!isSpecialCalendar && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Popover>
+                                        <PopoverTrigger>
+                                            <Button
+                                                variant="outline"
+                                                className="flex items-center w-13 h-7 border"
+                                            >
+                                                <div
+                                                    className="-ml-4 w-4 h-4 rounded-xl"
+                                                    style={{backgroundColor: color}}
+                                                />
+                                                <ChevronDownIcon className=" -mr-4 w-1 h-1 text-gray-500"/>
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent align="start" className="w-auto"
+                                                        onOpenAutoFocus={(event) => event.preventDefault()}>
+                                            <div className="flex gap-2">
+                                                <ColorPicker selectedColor={color} onChange={handleColorChange}/>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </TooltipTrigger>
+                                <TooltipContent>Event color</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </div>
 
                 {!isSpecialCalendar && (
