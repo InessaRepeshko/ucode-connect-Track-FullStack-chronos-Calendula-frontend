@@ -79,10 +79,9 @@ body {
 }
 
 
-/* Стили для зеркального события во время выделения */
 .fc-event-mirror {
     background-color: var(--main-calendar-color, #039BE5) !important;
     border-color: var(--main-calendar-color, #039BE5) !important;
-    color: #ffffff !important; /* Устанавливаем белый цвет текста */
+    color: #ffffff !important;
 }
 

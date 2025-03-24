@@ -13,7 +13,7 @@ import { ToastStatusMessages } from "@/constants/toastStatusMessages.ts";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import {useEventDraft} from "@/components/utils/EventDraftContext.tsx";
-import {BellRing, BookmarkCheck, CalendarFold, Video} from "lucide-react";
+import {BellRing, BookmarkCheck, CalendarFold, Video, X} from "lucide-react";
 import {getCalendars} from "@/components/redux/actions/calendarActions.ts";
 import UserSelector from "@/components/utils/UserSelector.tsx";
 
@@ -124,9 +124,17 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
     return (
         <Popover open={Boolean(selectedDate)} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
-                className="w-[430px] h-[390px] p-6 space-y-4"
+                className="w-[430px] h-[390px] p-6 space-y-4 relative"
                 style={position ? { position: "absolute", top: position.y, left: position.x } : undefined}
             >
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-0 right-0"
+                    onClick={onClose}
+                >
+                    <X className="w-4 h-4" />
+                </Button>
 
                 <Input
                     placeholder="Add title"
@@ -134,6 +142,7 @@ const CreateEventPopover = ({ selectedDate, endDate, position, onSave, onClose }
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     autoFocus
+                    className="mt-1.5"
                 />
 
                 <div className="flex items-center space-x-2">

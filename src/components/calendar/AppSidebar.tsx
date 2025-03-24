@@ -18,7 +18,12 @@ import {Button} from "@/components/ui/button.tsx";
 import {useNavigate} from "react-router-dom";
 import {Avatar, AvatarImage} from "@/components/ui/avatar.tsx";
 
-export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+    onDateSelect?: (date: Date) => void;
+    externalDate?: Date;
+}
+
+export function AppSidebar({ onDateSelect, externalDate, ...props }: AppSidebarProps) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state: RootState) => state.auth.user);
@@ -121,7 +126,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 </DropdownMenu>
 
                 <SidebarContent>
-                    <DatePicker/>
+                    <DatePicker onDateSelect={onDateSelect} externalDate={externalDate}/>
                     <SidebarSeparator className="mx-0"/>
                     <Calendars calendars={data}/>
                 </SidebarContent>

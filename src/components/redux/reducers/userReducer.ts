@@ -6,7 +6,6 @@ interface User {
     email: string;
     profilePicture: string;
     country: string;
-    // role: string;
 }
 
 interface UsersState {

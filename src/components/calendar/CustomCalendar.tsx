@@ -34,13 +34,31 @@ interface Calendar {
     id: number;
     creationByUserId: number;
     participants: Participant[];
-    events: {
-        id: number;
-        title: string;
-        startAt: string;
-        endAt: string;
-    }[];
+    events: CalendarEvent[];
     type?: string;
+}
+
+interface CalendarEvent {
+    id: number;
+    title: string;
+    startAt: string;
+    endAt: string;
+    description?: string;
+    type?: string;
+    participants?: EventParticipant[];
+}
+
+interface EventParticipant {
+    userId: number;
+    attendanceStatus?: "yes" | "no" | "maybe" | undefined;
+    color?: string;
+    user?: {
+        id: number;
+        fullName: string;
+        email: string;
+        profilePicture: string;
+    };
+    creationAt?: string;
 }
 
 export interface EventType {
@@ -76,6 +94,7 @@ interface CustomCalendarProps {
     onEventsChange?: (events: EventType[]) => void;
     selectedEvent?: any;
     onEventSelect?: (event: any) => void;
+    selectedDate1?: Date;
 }
 
 const DEFAULT_CALENDAR_COLOR = "#039BE5";
@@ -87,6 +106,7 @@ export default function CustomCalendar({
                                            onEventsChange,
                                            selectedEvent: externalSelectedEvent,
                                            onEventSelect,
+                                           selectedDate1,
                                        }: CustomCalendarProps) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -110,6 +130,19 @@ export default function CustomCalendar({
     });
     const [currentTitle, setCurrentTitle] = useState<string>("");
     const [isFromSearch, setIsFromSearch] = useState(false);
+
+    useEffect(() => {
+        if (selectedDate1 && calendarRef.current) {
+            const calendarApi = calendarRef.current.getApi();
+            const currentStart = calendarApi.view.activeStart;
+            const currentEnd = calendarApi.view.activeEnd;
+
+            if (selectedDate1 < currentStart || selectedDate1 > currentEnd) {
+                calendarApi.gotoDate(selectedDate1);
+            }
+
+        }
+    }, [selectedDate1]);
 
     useEffect(() => {
         if (externalSelectedEvent) {
@@ -140,10 +173,26 @@ export default function CustomCalendar({
         }
     }, [events, onEventsChange]);
 
-    const getCalendarColor = (calendarId: number | undefined) => {
-        if (!calendarId || !currentUser?.id) return DEFAULT_CALENDAR_COLOR;
+    const getCalendarColor = (calendarId: number | undefined): string => {
+        if (!currentUser) {
+            return DEFAULT_CALENDAR_COLOR;
+        }
+        const mainCalendar = calendars.find((cal) => cal.type === "main" && cal.participants.some((p) => p.userId === currentUser?.id));
+        if (!calendarId || !currentUser?.id) {
+            if (mainCalendar) {
+                const participant = mainCalendar.participants.find((p) => p.userId === currentUser.id);
+                return participant?.color || DEFAULT_CALENDAR_COLOR;
+            }
+            return DEFAULT_CALENDAR_COLOR;
+        }
         const reduxCalendar = calendars.find((cal) => cal.id === calendarId);
-        if (!reduxCalendar || !reduxCalendar.participants) return DEFAULT_CALENDAR_COLOR;
+        if (!reduxCalendar || !reduxCalendar.participants) {
+            if (mainCalendar) {
+                const participant = mainCalendar.participants.find((p) => p.userId === currentUser.id);
+                return participant?.color || DEFAULT_CALENDAR_COLOR;
+            }
+            return DEFAULT_CALENDAR_COLOR;
+        }
         const participant = reduxCalendar.participants.find((p) => p.userId === currentUser.id);
         return participant?.color || DEFAULT_CALENDAR_COLOR;
     };
@@ -224,18 +273,25 @@ export default function CustomCalendar({
     const fetchEventsWithAttendance = async () => {
         if (!calendars.length || !currentUser?.id) return;
 
-        const allEventsPromises = calendars
-            .filter(calendar => selectedCalendarIds.includes(calendar.id) &&
-                (calendar.creationByUserId === currentUser.id || calendar.participants.some(p => p.userId === currentUser.id)))
-            .flatMap(calendar => calendar.events.map(async (event) => {
-                const response = await getEventById(event.id);
-                const calendarColor = getCalendarColor(calendar.id);
+        const allEvents = calendars
+            .filter(
+                (calendar) =>
+                    selectedCalendarIds.includes(calendar.id) &&
+                    (calendar.creationByUserId === currentUser.id ||
+                        calendar.participants.some((p) => p.userId === currentUser.id))
+            )
+            .flatMap((calendar) =>
+                calendar.events.map((event) => {
+                    const calendarColor = getCalendarColor(calendar.id);
 
-                if (response.success) {
-                    const currentUserParticipant = response.data.participants.find(
-                        (p: any) => p.userId === currentUser?.id
+                    const currentUserParticipant = event.participants?.find(
+                        (p) => p.userId === currentUser?.id
                     );
-                    const attendanceStatus = currentUserParticipant?.attendanceStatus as "yes" | "no" | "maybe" | undefined;
+                    const attendanceStatus = currentUserParticipant?.attendanceStatus as
+                        | "yes"
+                        | "no"
+                        | "maybe"
+                        | undefined;
                     const eventColor = currentUserParticipant?.color || calendarColor;
 
                     let backgroundColor = "#ffffff";
@@ -280,40 +336,20 @@ export default function CustomCalendar({
                             calendarId: calendar.id,
                             color: currentUserParticipant?.color,
                             calendarColor,
-                            description: response.data.description,
-                            type: response.data.type,
+                            description: event.description,
+                            type: event.type,
                             calendarType: calendar.type,
                         },
                     } as EventType;
-                }
-                return {
-                    id: event.id.toString(),
-                    title: event.title,
-                    start: new Date(event.startAt),
-                    end: new Date(event.endAt),
-                    allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
-                    backgroundColor: "#ffffff",
-                    borderColor: calendarColor,
-                    textColor: calendarColor,
-                    extendedProps: {
-                        attendanceStatus: undefined,
-                        calendarId: calendar.id,
-                        color: undefined,
-                        calendarColor,
-                        description: undefined,
-                        type: undefined,
-                        calendarType: calendar.type,
-                    },
-                } as EventType;
-            }));
+                })
+            );
 
-        const allEvents = await Promise.all(allEventsPromises);
         setEvents(allEvents);
 
         const calendarApi = calendarRef.current?.getApi();
         if (calendarApi) {
-            calendarApi.getEvents().forEach(event => event.remove());
-            allEvents.forEach(event => {
+            calendarApi.getEvents().forEach((event) => event.remove());
+            allEvents.forEach((event) => {
                 calendarApi.addEvent({
                     id: event.id,
                     title: event.title,
@@ -516,8 +552,46 @@ export default function CustomCalendar({
 
     const handleEventUpdate = async (info: any) => {
         const eventId = parseInt(info.event.id, 10);
-        const startAt = format(info.event.start, "yyyy-MM-dd HH:mm:ss");
-        const endAt = format(info.event.end, "yyyy-MM-dd HH:mm:ss");
+        const isAllDay = info.event.allDay;
+
+        if (!info.event.start || !(info.event.start instanceof Date) || isNaN(info.event.start.getTime())) {
+            info.revert();
+            return;
+        }
+
+        const currentEvent = events.find((e) => e.id === info.event.id);
+        const wasAllDay = currentEvent?.allDay || false;
+
+        const startAt = isAllDay
+            ? format(info.event.start, "yyyy-MM-dd 00:00:00")
+            : format(info.event.start, "yyyy-MM-dd HH:mm:ss");
+
+        let endAt;
+        if (isAllDay) {
+            if (!info.event.end || !wasAllDay) {
+                const endDate = new Date(info.event.start);
+                endDate.setHours(23, 59, 59, 0);
+                endAt = format(endDate, "yyyy-MM-dd HH:mm:ss");
+            } else if (!(info.event.end instanceof Date) || isNaN(info.event.end.getTime())) {
+                info.revert();
+                return;
+            } else {
+                const endDate = new Date(info.event.end);
+                endDate.setHours(23, 59, 59, 0);
+                endAt = format(endDate, "yyyy-MM-dd HH:mm:ss");
+            }
+        } else {
+            if (!info.event.end) {
+                const endDate = new Date(info.event.start);
+                endDate.setMinutes(endDate.getMinutes() + 30);
+                endAt = format(endDate, "yyyy-MM-dd HH:mm:ss");
+            } else if (!(info.event.end instanceof Date) || isNaN(info.event.end.getTime())) {
+                info.revert();
+                return;
+            } else {
+                endAt = format(info.event.end, "yyyy-MM-dd HH:mm:ss");
+            }
+        }
 
         const payload = {
             startAt,
@@ -527,10 +601,15 @@ export default function CustomCalendar({
         const result = await updateEventDate(dispatch, eventId, payload);
 
         if (result.success) {
-            setEvents(prevEvents =>
-                prevEvents.map(event =>
+            setEvents((prevEvents) =>
+                prevEvents.map((event) =>
                     event.id === info.event.id
-                        ? { ...event, start: info.event.start, end: info.event.end }
+                        ? {
+                            ...event,
+                            start: info.event.start,
+                            end: info.event.end || new Date(endAt),
+                            allDay: isAllDay,
+                        }
                         : event
                 )
             );
@@ -790,7 +869,7 @@ export default function CustomCalendar({
                         const newEventId = Date.now().toString();
                         let eventEnd = info.end;
                         const isAllDayEvent = info.allDay;
-                        const defaultCalendarId = selectedCalendarIds[0] || calendars[0]?.id || 0; // Значение по умолчанию
+                        const defaultCalendarId = selectedCalendarIds[0] || calendars[0]?.id || 0;
                         const mainCalendarColor = getMainCalendarColor();
 
                         const calendarContainer = document.querySelector(".calendar-container") as HTMLElement;

@@ -14,7 +14,7 @@ import { NavUser } from "@/components/calendar/NavUser.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "@/components/redux/store.ts";
 import { createPortal } from "react-dom";
-import { format } from "date-fns";
+import { format, sub, add } from "date-fns";
 
 interface CustomToolbarFullCalendarProps {
     calendarApi: {
@@ -28,6 +28,7 @@ interface CustomToolbarFullCalendarProps {
     currentView?: string;
     events: EventType[];
     onEventSelect: (event: any) => void;
+    onDateChange?: (date: Date) => void;
 }
 
 interface EventType {
@@ -45,26 +46,30 @@ interface EventType {
     };
 }
 
+const DEFAULT_CALENDAR_COLOR = "#039BE5";
+
 export default function CustomToolbarFullCalendar({
                                                       calendarApi,
                                                       title,
                                                       currentView,
                                                       events,
                                                       onEventSelect,
+                                                      onDateChange,
                                                   }: CustomToolbarFullCalendarProps) {
     const [selectedView, setSelectedView] = useState("Week");
     const user = useSelector((state: RootState) => state.auth.user);
     const currentUser = useSelector((state: RootState) => state.auth.user);
+    const calendars = useSelector((state: RootState) => state.calendars.calendars);
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredEvents, setFilteredEvents] = useState<EventType[]>([]);
     const [searchPosition, setSearchPosition] = useState({ x: 0, y: 0, width: 0 });
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     useEffect(() => {
         if (searchQuery.trim() === "") {
             setFilteredEvents([]);
             return;
         }
-
         const now = new Date();
         const matchingEvents = events.filter((event) =>
             event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -129,12 +134,85 @@ export default function CustomToolbarFullCalendar({
         }
     };
 
+    const handlePrev = () => {
+        if (calendarApi && currentView) {
+            calendarApi.prev();
+            let newDate: Date;
+            switch (currentView) {
+                case "dayGridMonth":
+                    newDate = sub(currentDate, { months: 1 });
+                    break;
+                case "timeGridWeek":
+                    newDate = sub(currentDate, { weeks: 1 });
+                    break;
+                case "timeGridDay":
+                    newDate = sub(currentDate, { days: 1 });
+                    break;
+                default:
+                    newDate = sub(currentDate, { weeks: 1 });
+            }
+            setCurrentDate(newDate);
+            console.log("Prev date:", newDate);
+            onDateChange?.(newDate);
+        }
+    };
+
+    const handleNext = () => {
+        if (calendarApi && currentView) {
+            calendarApi.next();
+            let newDate: Date;
+            switch (currentView) {
+                case "dayGridMonth":
+                    newDate = add(currentDate, { months: 1 });
+                    break;
+                case "timeGridWeek":
+                    newDate = add(currentDate, { weeks: 1 });
+                    break;
+                case "timeGridDay":
+                    newDate = add(currentDate, { days: 1 });
+                    break;
+                default:
+                    newDate = add(currentDate, { weeks: 1 });
+            }
+            setCurrentDate(newDate);
+            console.log("Next date:", newDate);
+            onDateChange?.(newDate);
+        }
+    };
+
+    const handleToday = () => {
+        if (calendarApi) {
+            calendarApi.today();
+            const newDate = new Date();
+            setCurrentDate(newDate);
+            console.log("Today date:", newDate);
+            onDateChange?.(newDate);
+        }
+    };
+
+    const getCalendarColor = (calendarId: number | undefined): string => {
+        if (!currentUser?.id || !calendarId) {
+            return DEFAULT_CALENDAR_COLOR;
+        }
+        const calendar = calendars.find((cal) => cal.id === calendarId);
+        if (!calendar || !calendar.participants) {
+            return DEFAULT_CALENDAR_COLOR;
+        }
+        const participant = calendar.participants.find((p) => p.userId === currentUser.id);
+        return participant?.color || DEFAULT_CALENDAR_COLOR;
+    };
+
     const handleEventClick = async (event: EventType) => {
         const eventId = parseInt(event.id, 10);
         const response = await import("@/components/redux/actions/eventActions.ts").then(
             (module) => module.getEventById(eventId)
         );
         if (response.success) {
+            const currentUserParticipant = response.data.participants.find(
+                (p: any) => p.userId === currentUser?.id
+            );
+            const calendarColor = getCalendarColor(response.data.calendarId);
+            const eventColor = event.extendedProps?.color || currentUserParticipant?.color || calendarColor;
             const eventData = {
                 id: response.data.id.toString(),
                 title: response.data.title,
@@ -147,7 +225,7 @@ export default function CustomToolbarFullCalendar({
                 calendarTitle: response.data.calendar?.title,
                 calendarType: response.data.calendar?.type,
                 calendarId: response.data.calendarId,
-                color: response.data.participants.find((p: any) => p.userId === currentUser?.id)?.color,
+                color: eventColor,
                 notifyBeforeMinutes: response.data.notifyBeforeMinutes,
                 creator: {
                     id: response.data.creator.id,
@@ -178,7 +256,7 @@ export default function CustomToolbarFullCalendar({
             <div className="flex gap-2">
                 <Button
                     variant="outline"
-                    onClick={() => calendarApi?.today()}
+                    onClick={handleToday}
                     disabled={!calendarApi}
                     className="text-[16px] py-5 px-7 rounded-full font-medium"
                 >
@@ -187,7 +265,7 @@ export default function CustomToolbarFullCalendar({
                 <div className="flex gap-0">
                     <Button
                         variant="ghost"
-                        onClick={() => calendarApi?.prev()}
+                        onClick={handlePrev}
                         disabled={!calendarApi}
                         className="text-[16px] py-5 px-7 rounded-full"
                     >
@@ -195,7 +273,7 @@ export default function CustomToolbarFullCalendar({
                     </Button>
                     <Button
                         variant="ghost"
-                        onClick={() => calendarApi?.next()}
+                        onClick={handleNext}
                         disabled={!calendarApi}
                         className="text-[16px] py-5 px-7 rounded-full"
                     >

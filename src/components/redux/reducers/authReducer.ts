@@ -21,7 +21,6 @@ const initialState: AuthState = {
     registrationErrors: [],
 };
 
-// Слайс для аутентификации
 const authSlice = createSlice({
     name: "auth",
     initialState,

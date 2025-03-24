@@ -64,7 +64,6 @@ const eventSlice = createSlice({
             const eventIndex = state.events.findIndex((event) => event.id === action.payload.eventId);
             if (eventIndex !== -1) {
                 const event = state.events[eventIndex];
-                // Обновляем цвет в participants для создателя
                 const creatorParticipantIndex = event.participants.findIndex(
                     (p) => p.userId === event.creationByUserId
                 );

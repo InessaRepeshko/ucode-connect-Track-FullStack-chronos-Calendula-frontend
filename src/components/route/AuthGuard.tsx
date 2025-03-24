@@ -12,7 +12,6 @@ export default function AuthGuard({ children, publicRoutes = [] }: AuthGuardProp
     const { authToken } = useSelector((state: RootState) => state.auth);
     const location = useLocation();
 
-    // Публичные маршруты по умолчанию
     const defaultPublicRoutes = [
         "/login",
         "/register",

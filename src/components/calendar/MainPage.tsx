@@ -14,8 +14,9 @@ export default function MainPage() {
     } | null>(null);
     const [calendarTitle, setCalendarTitle] = useState<string>("");
     const [currentView, setCurrentView] = useState<string>("timeGridWeek");
-    const [events, setEvents] = useState<EventType[]>([]); // Состояние для событий
+    const [events, setEvents] = useState<EventType[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
     const handleCalendarApiReady = useCallback((api: {
         prev: () => void;
@@ -24,35 +25,38 @@ export default function MainPage() {
         changeView: (view: string) => void;
         getTitle: () => string;
     }) => {
-        console.log("calendarApi updated");
         setCalendarApi(api);
-    }, []); // Пустой массив зависимостей, чтобы ссылка не менялась
-
+    }, []);
     const handleTitleChange = useCallback((title: string) => {
-        console.log("Title changed:", title);
         setCalendarTitle(title);
-    }, []); // Стабилизируем и эту функцию
+    }, []);
 
     const handleViewChange = useCallback((view: string) => {
-        console.log("View changed:", view);
         setCurrentView(view);
     }, []);
 
     const handleEventsChange = useCallback((newEvents: EventType[]) => {
-        console.log("Events changed:", newEvents);
         setEvents(newEvents);
     }, []);
 
     const handleEventSelect = useCallback((event: any) => {
-        console.log("Event selected from search:", event);
         setSelectedEvent(event);
     }, []);
 
-    console.log("MainPage rendered");
+    const handleDateSelect = useCallback((date: Date) => {
+        setSelectedDate(date);
+    }, []);
+
+    const handleDateChange = useCallback((date: Date) => {
+        setSelectedDate(date);
+    }, []);
 
     return (
         <SidebarProvider>
-            <AppSidebar />
+            <AppSidebar
+                onDateSelect={handleDateSelect}
+                externalDate={selectedDate}
+            />
             <SidebarInset>
                 <header className="sticky top-0 flex h-17 shrink-0 items-center gap-2 border-b bg-background px-4">
                     <CustomToolbarFullCalendar
@@ -61,6 +65,7 @@ export default function MainPage() {
                         currentView={currentView}
                         events={events}
                         onEventSelect={handleEventSelect}
+                        onDateChange={handleDateChange}
                     />
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4">
@@ -71,6 +76,7 @@ export default function MainPage() {
                         onEventsChange={handleEventsChange}
                         selectedEvent={selectedEvent}
                         onEventSelect={handleEventSelect}
+                        selectedDate1={selectedDate}
                     />
                 </div>
             </SidebarInset>

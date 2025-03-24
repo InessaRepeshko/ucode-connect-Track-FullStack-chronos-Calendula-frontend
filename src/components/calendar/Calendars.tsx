@@ -6,6 +6,11 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible.tsx";
 import {
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent,
+} from "@/components/ui/tooltip.tsx";
+import {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
@@ -57,7 +62,7 @@ const DEFAULT_CALENDAR_COLOR = "#039BE5";
 export function Calendars({ calendars }: CalendarsProps) {
     const dispatch = useDispatch();
     const selectedCalendarIds = useSelector((state: RootState) => state.calendars.selectedCalendarIds);
-    const reduxCalendars = useSelector((state: RootState) => state.calendars.calendars); // Данные из Redux
+    const reduxCalendars = useSelector((state: RootState) => state.calendars.calendars);
     const currentUser = useSelector((state: RootState) => state.auth.user);
     const [selectedCalendar, setSelectedCalendar] = React.useState<CalendarItem | null>(null);
     const [hoveredItem, setHoveredItem] = React.useState<string | null>(null);
@@ -124,13 +129,13 @@ export function Calendars({ calendars }: CalendarsProps) {
         <>
             {calendars.map((calendar) => (
                 <React.Fragment key={calendar.name}>
-                    <SidebarGroup className="py-0">
+                    <SidebarGroup className="py-0 ">
                         <Collapsible defaultOpen={true} className="group/collapsible">
                             <SidebarGroupLabel
                                 asChild
                                 className="group/label flex items-center justify-between text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full text-sm px-2 py-1"
                             >
-                                <CollapsibleTrigger className="flex w-full items-center">
+                                <CollapsibleTrigger className="flex w-full items-center cursor-pointer">
                                     {calendar.name}
                                     <ChevronRight
                                         className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90"
@@ -155,27 +160,41 @@ export function Calendars({ calendars }: CalendarsProps) {
                                                     }}
                                                 >
                                                     <SidebarMenuButton
-                                                        className="flex items-center justify-between w-full"
+                                                        className="flex items-center justify-between w-full cursor-pointer"
                                                     >
                                                         <div className="flex items-center">
                                                             <div
                                                                 data-active={selectedCalendarIds.includes(item.id)}
-                                                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground flex aspect-square size-5 shrink-0 items-center justify-center rounded-sm border"
+                                                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground flex aspect-square size-5 shrink-0 items-center justify-center rounded-sm border relative cursor-pointer"
                                                                 style={{
-                                                                    backgroundColor: selectedCalendarIds.includes(item.id) ? currentColor : "transparent",
+                                                                    backgroundColor: selectedCalendarIds.includes(item.id)
+                                                                        ? currentColor
+                                                                        : "transparent",
                                                                     borderColor: currentColor,
                                                                     borderWidth: "1.5px",
                                                                 }}
                                                                 onClick={() => handleToggleCalendar(item.id)}
                                                             >
+                                                                <div
+                                                                    className="absolute size-8 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-full transition-opacity opacity-0 group-hover/calendar-item:opacity-20"
+                                                                    style={{ backgroundColor: currentColor }}
+                                                                />
                                                                 <Check
                                                                     strokeWidth={2.9}
-                                                                    className="hidden size-5 group-data-[active=true]/calendar-item:block text-white"
+                                                                    className="hidden size-5 group-data-[active=true]/calendar-item:block text-white relative z-10"
                                                                 />
                                                             </div>
-                                                            <span className="ml-2 truncate max-w-[150px] overflow-hidden whitespace-nowrap">
-                                                                {item.title}
-                                                            </span>
+
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span className="ml-2 truncate max-w-[150px] overflow-hidden whitespace-nowrap">
+                                                                      {item.title}
+                                                                    </span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    {item.title}
+                                                                </TooltipContent>
+                                                            </Tooltip>
                                                         </div>
                                                         {(hoveredItem === item.title || openDropdown === item.title) && (
                                                             <DropdownMenu

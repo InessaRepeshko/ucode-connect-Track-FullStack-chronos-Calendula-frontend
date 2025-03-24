@@ -1,6 +1,6 @@
-import React, { JSX } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import React, {JSX} from "react";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Button} from "@/components/ui/button";
 import {
     Pencil,
     Trash2,
@@ -19,12 +19,12 @@ import {
     CalendarFold,
     ChevronDownIcon,
 } from "lucide-react";
-import { format } from "date-fns";
-import { Avatar, AvatarImage } from "@/components/ui/avatar.tsx";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
-import { ColorPicker } from "@/components/calendar/ColorPiker.tsx";
-import { useDispatch } from "react-redux";
-import { updateEventColorApi } from "@/components/redux/actions/eventActions.ts";
+import {format} from "date-fns";
+import {Avatar, AvatarImage} from "@/components/ui/avatar.tsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
+import {ColorPicker} from "@/components/calendar/ColorPiker.tsx";
+import {useDispatch} from "react-redux";
+import {updateEventColorApi} from "@/components/redux/actions/eventActions.ts";
 import {UiMessages} from "@/constants/uiMessages.ts";
 
 interface User {
@@ -75,14 +75,12 @@ export default function EventDetailsPopover({
                                             }: EventDetailsPopoverProps) {
     const dispatch = useDispatch();
 
-    // Извлекаем цвет для текущего пользователя
     const currentUserParticipant = event.participants.find(
         (p) => p.id === currentUserId
     );
     const initialColor = event.color || currentUserParticipant?.color || "#039BE5";
     const [color, setColor] = React.useState<string>(initialColor);
 
-    // Синхронизируем локальное состояние color с цветом текущего пользователя
     React.useEffect(() => {
         const updatedCurrentUserParticipant = event.participants.find(
             (p) => p.id === currentUserId
@@ -104,15 +102,15 @@ export default function EventDetailsPopover({
     const isSpecialCalendar = event.calendarType === "holidays" || event.calendarType === "birthdays";
 
     const typeIcons: { [key: string]: JSX.Element } = {
-        meeting: <Video strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5" />,
-        reminder: <BellRing strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5" />,
-        task: <BookmarkCheck strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5" />,
+        meeting: <Video strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5"/>,
+        reminder: <BellRing strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5"/>,
+        task: <BookmarkCheck strokeWidth={3} className="w-4 h-4 mr-1 mt-0.5"/>,
     };
 
     const categoryIcons: { [key: string]: JSX.Element } = {
-        work: <BriefcaseBusiness strokeWidth={3} className="w-4 h-4 mr-1" />,
-        home: <Sofa strokeWidth={3} className="w-4 h-4 mr-1" />,
-        hobby: <Palette strokeWidth={3} className="w-4 h-4 mr-1" />,
+        work: <BriefcaseBusiness strokeWidth={3} className="w-4 h-4 mr-1"/>,
+        home: <Sofa strokeWidth={3} className="w-4 h-4 mr-1"/>,
+        hobby: <Palette strokeWidth={3} className="w-4 h-4 mr-1"/>,
     };
 
     const participantsWithoutCreator = event.participants.filter(
@@ -122,8 +120,8 @@ export default function EventDetailsPopover({
     const totalParticipants = event.participants.length;
 
     const statusIcons: { [key: string]: JSX.Element } = {
-        yes: <Check className="w-4 h-4 text-green-500 bg-green-100 rounded-lg border" />,
-        no: <X className="w-4 h-4 text-red-500 bg-red-100 rounded-lg border" />,
+        yes: <Check className="w-4 h-4 text-green-500 bg-green-100 rounded-lg border"/>,
+        no: <X className="w-4 h-4 text-red-500 bg-red-100 rounded-lg border"/>,
         maybe: (
             <div className="bg-gray-100 rounded-lg w-4 h-4 flex items-center justify-center border">
                 <span className="text-black text-sm font-medium">?</span>
@@ -140,7 +138,7 @@ export default function EventDetailsPopover({
     };
 
     const sortedParticipants = participantsWithoutCreator.sort((a, b) => {
-        const order = { yes: 0, no: 1, maybe: 2, undefined: 3 };
+        const order = {yes: 0, no: 1, maybe: 2, undefined: 3};
         const statusA = a.attendanceStatus || "undefined";
         const statusB = b.attendanceStatus || "undefined";
         return order[statusA] - order[statusB];
@@ -156,7 +154,6 @@ export default function EventDetailsPopover({
 
     const handleColorChange = async (newColor: string) => {
         if (!currentUserId) {
-            console.error("Current user ID is not defined");
             return;
         }
 
@@ -168,7 +165,6 @@ export default function EventDetailsPopover({
                 onColorChange(event.id, newColor);
             }
         } else {
-            console.error("Failed to update event color:", result.error);
             setColor(initialColor);
         }
     };
@@ -186,7 +182,7 @@ export default function EventDetailsPopover({
         <Popover open={true} onOpenChange={(open) => !open && onClose()}>
             <PopoverContent
                 className="w-[390px] h-auto p-4 space-y-3 bg-white border rounded-lg shadow-lg"
-                style={{ position: "absolute", top: position.y, left: position.x }}
+                style={{position: "absolute", top: position.y, left: position.x}}
             >
                 <div className="flex justify-between items-center">
                     <TooltipProvider>
@@ -204,16 +200,30 @@ export default function EventDetailsPopover({
                     <div className="flex gap-2">
                         {isCreator && (
                             <>
-                                <Button variant="ghost" size="sm" onClick={onEdit}>
-                                    <Pencil className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={onDelete}>
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Button variant="ghost" size="sm" onClick={onEdit} tabIndex={-1}>
+                                                <Pencil className="w-4 h-4"/>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Edit event</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Button variant="ghost" size="sm" onClick={onDelete}>
+                                                <Trash2 className="w-4 h-4"/>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Delete event</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </>
                         )}
                         <Button variant="ghost" size="sm" onClick={onClose}>
-                            <X className="w-4 h-4" />
+                            <X className="w-4 h-4"/>
                         </Button>
                     </div>
                 </div>
@@ -236,23 +246,37 @@ export default function EventDetailsPopover({
                 {(event.type || event.category || event.calendarTitle) && (
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                         {event.type && (
-                            <div className="flex items-center">
-                                {typeIcons[event.type] || <Calendar className="w-4 h-4 mr-1" />}
-                                <span className="px-1 capitalize">{event.type}</span>
-                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <div className="flex items-center">
+                                            {typeIcons[event.type] || <Calendar className="w-4 h-4 mr-1"/>}
+                                            <span className="px-1 capitalize">{event.type}</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Type</TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                         {event.category && (
-                            <div className="flex items-center">
-                                {categoryIcons[event.category] || <Briefcase className="w-4 h-4 mr-1" />}
-                                <span className="px-1 capitalize">{event.category}</span>
-                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <div className="flex items-center">
+                                            {categoryIcons[event.category] || <Briefcase className="w-4 h-4 mr-1"/>}
+                                            <span className="px-1 capitalize">{event.category}</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Category</TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                         {event.calendarTitle && (
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <div className="flex items-center text-sm text-gray-600">
-                                            <CalendarFold strokeWidth={3} className="w-4 h-4 mr-1 flex-shrink-0" />
+                                            <CalendarFold strokeWidth={3} className="w-4 h-4 mr-1 flex-shrink-0"/>
                                             <span className="px-1 truncate max-w-[150px]">{event.calendarTitle}</span>
                                         </div>
                                     </TooltipTrigger>
@@ -266,37 +290,51 @@ export default function EventDetailsPopover({
                 )}
 
                 <div className="flex items-center gap-2">
-                    {/* Добавляем текст уведомления */}
-                    <div className="flex items-center text-sm text-gray-600">
-                        <BellRing strokeWidth={3} className="mr-1 h-4 w-4" />
-                        <span className="px-1">{getNotificationText(event.notifyBeforeMinutes)}</span>
-                    </div>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <div className="flex items-center text-sm text-gray-600">
+                                    <BellRing strokeWidth={3} className="mr-1 h-4 w-4"/>
+                                    <span className="px-1">{getNotificationText(event.notifyBeforeMinutes)}</span>
 
-                    <Popover>
-                        <PopoverTrigger>
-                            <Button
-                                variant="outline"
-                                className="flex items-center w-13 h-7 border"
-                            >
-                                <div
-                                    className="-ml-4 w-4 h-4 rounded-xl"
-                                    style={{ backgroundColor: color }}
-                                />
-                                <ChevronDownIcon className=" -mr-4 w-1 h-1 text-gray-500" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="start" className="w-auto">
-                            <div className="flex gap-2">
-                                <ColorPicker selectedColor={color} onChange={handleColorChange} />
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>Reminder</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Button
+                                            variant="outline"
+                                            className="flex items-center w-13 h-7 border"
+                                        >
+                                            <div
+                                                className="-ml-4 w-4 h-4 rounded-xl"
+                                                style={{backgroundColor: color}}
+                                            />
+                                            <ChevronDownIcon className=" -mr-4 w-1 h-1 text-gray-500"/>
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent align="start" className="w-auto" onOpenAutoFocus={(event) => event.preventDefault()}>
+                                        <div className="flex gap-2">
+                                            <ColorPicker selectedColor={color} onChange={handleColorChange} />
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </TooltipTrigger>
+                            <TooltipContent>Event color</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
 
                 {!isSpecialCalendar && (
                     <>
                         <div className="flex items-center text-sm text-gray-600">
-                            <UsersRound strokeWidth={3} className="w-4 h-4 mr-1 mt-1" />
+                            <UsersRound strokeWidth={3} className="w-4 h-4 mr-1 mt-1"/>
                             <div>
                                 <div className="flex items-center px-1">
                                     <span className="font-medium">
@@ -342,7 +380,14 @@ export default function EventDetailsPopover({
                                 <div className="flex flex-col">
                                     <div className="flex items-center gap-1">
                                         <p className="text-sm font-medium">{event.creator.fullName}</p>
-                                        <Crown className="w-4 h-4 text-yellow-500" />
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger>
+                                                    <Crown className="w-4 h-4 text-yellow-500"/>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Owner</TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
                                     <p className="text-[12px] text-gray-500">{event.creator.email}</p>
                                 </div>
@@ -363,7 +408,8 @@ export default function EventDetailsPopover({
                                                     />
                                                 </Avatar>
                                                 {participant.attendanceStatus && (
-                                                    <div className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
+                                                    <div
+                                                        className="absolute bottom-0 left-0 translate-x-[130%] translate-y-[10%]">
                                                         {statusIcons[participant.attendanceStatus]}
                                                     </div>
                                                 )}
@@ -390,7 +436,7 @@ export default function EventDetailsPopover({
                                 onClick={() => handleAttendanceChange("yes")}
                                 className="flex items-center gap-1"
                             >
-                                <Check className="w-4 h-4" />
+                                <Check className="w-4 h-4"/>
                                 Yes
                             </Button>
                             <Button
@@ -399,7 +445,7 @@ export default function EventDetailsPopover({
                                 onClick={() => handleAttendanceChange("no")}
                                 className="flex items-center gap-1"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4"/>
                                 No
                             </Button>
                             <Button
