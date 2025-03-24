@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import soloImage from "../../assets/solo.png";
+import LogoImage from "../../assets/logo_white.png";
 import { Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -50,7 +50,7 @@ export default function PasswordResetPage({ className, ...props }: React.Compone
                         <CardContent className="grid p-0 md:grid-cols-2">
                             <div className="relative hidden bg-muted md:block">
                                 <img
-                                    src={soloImage}
+                                    src={LogoImage}
                                     alt="Image"
                                     className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                                 />
