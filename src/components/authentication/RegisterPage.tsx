@@ -158,13 +158,13 @@ export default function RegisterPage({className, ...props}: React.ComponentProps
                                         <Select value={formData.country}
                                                      onValueChange={(value) => setFormData({ ...formData, country: value })}
                                         >
-                                            <SelectTrigger className="pl-10 w-full">
+                                            <SelectTrigger className="pl-10 w-full cursor-pointer">
                                                 <SelectValue placeholder="Country" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="Ukraine">Ukraine</SelectItem>
-                                                <SelectItem value="Finland">Finland</SelectItem>
-                                                <SelectItem value="Estonia">Estonia</SelectItem>
+                                                <SelectItem value="Ukraine" className="cursor-pointer">Ukraine</SelectItem>
+                                                <SelectItem value="Finland" className="cursor-pointer">Finland</SelectItem>
+                                                <SelectItem value="Estonia" className="cursor-pointer">Estonia</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

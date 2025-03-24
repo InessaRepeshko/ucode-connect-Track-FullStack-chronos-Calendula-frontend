@@ -299,7 +299,7 @@ const CreateEventPage = () => {
                                 <SelectContent>
                                     <ScrollArea className="h-48">
                                         {timeOptions.map((time) => (
-                                            <SelectItem key={time} value={time}>
+                                            <SelectItem className="cursor-pointer" key={time} value={time}>
                                                 {time}
                                             </SelectItem>
                                         ))}
@@ -339,7 +339,7 @@ const CreateEventPage = () => {
                                 <SelectContent>
                                     <ScrollArea className="h-48">
                                         {timeOptions.map((time) => (
-                                            <SelectItem key={time} value={time}>
+                                            <SelectItem className="cursor-pointer" key={time} value={time}>
                                                 {time}
                                             </SelectItem>
                                         ))}
