@@ -974,7 +974,7 @@ export default function CustomCalendar({
                         const calendarType = arg.event.extendedProps?.calendarType;
 
                         const textStyle = {
-                            color: (calendarType === "holidays" || calendarType === "birthday")
+                            color: (calendarType === "holidays" || calendarType === "birthdays")
                                 ? "#ffffff"
                                 : (arg.isMirror ? "#ffffff" : (attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : eventColor)),
                             textDecoration: attendanceStatus === "no" ? "line-through" : "none",
