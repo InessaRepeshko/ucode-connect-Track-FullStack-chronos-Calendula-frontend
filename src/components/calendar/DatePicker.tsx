@@ -54,6 +54,7 @@ export function DatePicker({ selected: initialSelected, onDateSelect, externalDa
                     onMonthChange={(newMonth) => setMonth(newMonth)}
                     modifiers={modifiers}
                     modifiersClassNames={modifiersClassNames}
+                    weekStartsOn={1}
                 />
             </SidebarGroupContent>
         </SidebarGroup>
