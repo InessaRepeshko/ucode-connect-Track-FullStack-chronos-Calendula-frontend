@@ -298,7 +298,7 @@ export default function CustomCalendar({
                     let borderColor = eventColor;
                     let textColor = eventColor;
 
-                    if (calendar.type === "holidays" || calendar.type === "birthday") {
+                    if (calendar.type === "holidays" || calendar.type === "birthdays") {
                         backgroundColor = eventColor;
                         textColor = "#ffffff";
                         borderColor = eventColor;
@@ -778,7 +778,7 @@ export default function CustomCalendar({
                             el.classList.add("event-with-stripe");
                         }
 
-                        if (calendarType === "holidays" || calendarType === "birthday") {
+                        if (calendarType === "holidays" || calendarType === "birthdays") {
                             el.style.backgroundImage = "none";
                             el.style.backgroundColor = eventColor;
                             el.style.borderColor = eventColor;
@@ -997,7 +997,7 @@ export default function CustomCalendar({
 
                         let CalendarIcon;
                         switch (calendarType) {
-                            case "birthday":
+                            case "birthdays":
                                 CalendarIcon = Cake;
                                 break;
                             case "holidays":
