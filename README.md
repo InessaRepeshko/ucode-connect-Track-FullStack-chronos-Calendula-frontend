@@ -3,7 +3,6 @@
     <h1 align="center">Calendula</h1>
 </p>
 
-<hr>
 
 ## 🗓️ Overview
 
