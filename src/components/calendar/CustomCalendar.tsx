@@ -1039,6 +1039,12 @@ export default function CustomCalendar({
                             })
                             : "??:??";
 
+                        const durationMs = arg.event.end && arg.event.start
+                            ? arg.event.end.getTime() - arg.event.start.getTime()
+                            : 0;
+                        const durationMinutes = durationMs / (1000 * 60);
+                        const isShortEvent = durationMinutes <= 30;
+
                         return (
                             <div className="custom-event">
                                 <div className="flex items-center">
@@ -1053,9 +1059,12 @@ export default function CustomCalendar({
                                         {title}
                                     </div>
                                 </div>
-                                <div className="ml-0.5 event-time truncate" style={textStyle}>
-                                    {startTime} - {endTime}
-                                </div>
+
+                                {!isShortEvent && (
+                                    <div className="ml-0.5 event-time truncate" style={textStyle}>
+                                        {startTime} - {endTime}
+                                    </div>
+                                )}
                             </div>
                         );
                     }}
