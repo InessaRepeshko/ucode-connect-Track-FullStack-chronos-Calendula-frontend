@@ -61,7 +61,7 @@ The Calendula project is designed for convenient task and event planning. It com
 ## 🚀 Get started
 ### ⚙️ Installation
 
-1. Run the calendula-backend.
+1. Run the [calendula-backend](https://github.com/Strawberry-Team/calendula-backend) project.
 
 2. Go to the project folder.
 
