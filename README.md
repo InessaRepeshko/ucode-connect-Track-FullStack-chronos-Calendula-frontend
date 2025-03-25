@@ -66,7 +66,7 @@ The Calendula project is designed for convenient task and event planning. It com
 * Home page
 	* Jump to today via the 'Today' button
 	* Search for events by title and description
-	* View events by month, weeek, day
+	* Different representation of the calendar: month, weeek, day
 	* Monthly calendar in the sidebar
 	* Synchronise between the monthly calendar in the sidebar and main event view
 	* Show the current day and time on the calendar
