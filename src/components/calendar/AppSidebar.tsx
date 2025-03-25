@@ -33,11 +33,11 @@ export function AppSidebar({ onDateSelect, externalDate, ...props }: AppSidebarP
 
     useEffect(() => {
         (async () => {
-            if (userId && calendars.length === 0) {
+            if (userId) {
                 await getCalendars(dispatch);
             }
         })();
-    }, [dispatch, userId, calendars.length]);
+    }, [dispatch, userId]);
 
     const data = [
         {
