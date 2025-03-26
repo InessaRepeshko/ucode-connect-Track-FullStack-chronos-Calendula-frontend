@@ -18,7 +18,6 @@ export function DatePicker({ selected: initialSelected, onDateSelect, externalDa
     const today = new Date();
 
     useEffect(() => {
-        console.log("External date received:", externalDate);
         if (externalDate) {
             if (!isSameDay(externalDate, selected || new Date())) {
                 setSelected(externalDate);

@@ -2,7 +2,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import "@/components/styles/fullcalendar.css";
 import CreateEventPopover from "@/components/event/CreateEventPopover.tsx";
 import EventDetailsPopover from "@/components/event/EventDetailsPopover.tsx";
@@ -14,6 +14,7 @@ import {
     joinEvent,
     leaveEvent,
     tentativeEvent,
+    updateEventColorApi,
     updateEventDate,
 } from "@/components/redux/actions/eventActions.ts";
 import { useNavigate } from "react-router-dom";
@@ -72,7 +73,7 @@ export interface EventType {
     textColor?: string;
     extendedProps?: {
         attendanceStatus?: "yes" | "no" | "maybe" | undefined;
-        calendarId: number;
+        calendarId?: number;
         color?: string;
         calendarColor?: string;
         description?: string;
@@ -110,7 +111,8 @@ export default function CustomCalendar({
                                        }: CustomCalendarProps) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [events, setEvents] = useState<EventType[]>([]);
+    const [allEvents, setAllEvents] = useState<EventType[]>([]);
+    const [visibleEvents, setVisibleEvents] = useState<EventType[]>([]);
     const calendars = useSelector((state: RootState) => state.calendars.calendars) as Calendar[];
     const selectedCalendarIds = useSelector((state: RootState) => state.calendars.selectedCalendarIds);
     const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -124,23 +126,252 @@ export default function CustomCalendar({
     const { setDraft } = useEventDraft();
     const [pressedToggles, setPressedToggles] = useState<Set<string>>(new Set());
     const [currentView, setCurrentView] = useState<string>("timeGridWeek");
-    const [dayHeaderFormat, setDayHeaderFormat] = useState<any>({
-        weekday: "short",
-        day: "numeric",
-    });
+    const [dayHeaderFormat, setDayHeaderFormat] = useState<any>({ weekday: "short", day: "numeric" });
     const [currentTitle, setCurrentTitle] = useState<string>("");
     const [isFromSearch, setIsFromSearch] = useState(false);
+
+    const calendarColors = useMemo(() => {
+        if (!currentUser?.id) return {};
+        const colorMap: { [key: number]: string } = {};
+        const mainCalendar = calendars.find((cal) => cal.type === "main" && cal.participants.some((p) => p.userId === currentUser.id));
+        const defaultColor = mainCalendar?.participants.find((p) => p.userId === currentUser.id)?.color || DEFAULT_CALENDAR_COLOR;
+
+        calendars.forEach((calendar) => {
+            const participant = calendar.participants?.find((p) => p.userId === currentUser.id);
+            colorMap[calendar.id] = participant?.color || defaultColor;
+        });
+
+        return colorMap;
+    }, [calendars, currentUser?.id]);
+
+    const getCalendarColor = useCallback((calendarId: number | undefined): string => {
+        if (!currentUser) return DEFAULT_CALENDAR_COLOR;
+        const mainCalendar = calendars.find((cal) => cal.type === "main" && cal.participants.some((p) => p.userId === currentUser.id));
+        if (!calendarId || !currentUser?.id) {
+            return mainCalendar?.participants.find((p) => p.userId === currentUser.id)?.color || DEFAULT_CALENDAR_COLOR;
+        }
+        return calendarColors[calendarId] || DEFAULT_CALENDAR_COLOR;
+    }, [currentUser, calendars, calendarColors]);
+
+    const filterEventsByDateRange = (events: EventType[], start: Date, end: Date): EventType[] => {
+        return events.filter((event) => {
+            const eventStart = new Date(event.start);
+            const eventEnd = new Date(event.end);
+            return eventStart < end && eventEnd > start;
+        });
+    };
+
+    const updateEventStyles = useCallback(() => {
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+            calendarApi.getEvents().forEach((event) => {
+                const el = document.querySelector(`.fc-event[data-event-id="${event.id}"]`) as HTMLElement;
+                if (!el) return;
+
+                const attendanceStatus = event.extendedProps?.attendanceStatus;
+                const calendarId = event.extendedProps?.calendarId;
+                const calendarColor = getCalendarColor(calendarId) || DEFAULT_CALENDAR_COLOR;
+                const eventColor = event.extendedProps?.color || calendarColor;
+                const calendarType = event.extendedProps?.calendarType;
+
+                if (event.id !== tempEventId && eventColor && eventColor !== calendarColor) {
+                    el.classList.add("event-with-stripe");
+                } else {
+                    el.classList.remove("event-with-stripe");
+                }
+
+                let backgroundColor = "#ffffff";
+                let textColor = eventColor;
+                let borderColor = eventColor;
+
+                if (calendarType === "holidays" || calendarType === "birthdays") {
+                    backgroundColor = eventColor;
+                    textColor = "#ffffff";
+                    borderColor = eventColor;
+                    el.style.backgroundImage = "none";
+                    el.style.textDecoration = "none";
+                }
+                else if (attendanceStatus === "yes") {
+                    backgroundColor = eventColor;
+                    textColor = "#ffffff";
+                    borderColor = eventColor;
+                    el.style.backgroundImage = "none";
+                    el.style.textDecoration = "none";
+                } else if (attendanceStatus === "maybe") {
+                    backgroundColor = eventColor;
+                    textColor = "#ffffff";
+                    borderColor = eventColor;
+                    el.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                    el.style.textDecoration = "none";
+                } else if (attendanceStatus === "no") {
+                    backgroundColor = "#ffffff";
+                    textColor = eventColor;
+                    borderColor = eventColor;
+                    el.style.backgroundImage = "none";
+                    el.style.textDecoration = "line-through";
+                } else {
+                    el.style.backgroundImage = "none";
+                    el.style.textDecoration = "none";
+                }
+
+                if (event.id === tempEventId || (selectedEvent && event.id === selectedEvent.id)) {
+                    if (attendanceStatus === "yes") {
+                        backgroundColor = eventColor;
+                        textColor = "#ffffff";
+                        borderColor = eventColor;
+                        el.style.backgroundImage = "none";
+                        el.style.textDecoration = "none";
+                    } else if (attendanceStatus === "maybe") {
+                        backgroundColor = eventColor;
+                        textColor = "#ffffff";
+                        borderColor = eventColor;
+                        el.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                        el.style.textDecoration = "none";
+                    } else if (attendanceStatus === "no") {
+                        backgroundColor = "#ffffff";
+                        textColor = eventColor;
+                        borderColor = eventColor;
+                        el.style.backgroundImage = "none";
+                        el.style.textDecoration = "line-through";
+                    } else if (event.id === tempEventId) {
+                        backgroundColor = eventColor;
+                        textColor = "#ffffff";
+                        borderColor = eventColor;
+                        el.style.backgroundImage = "none";
+                        el.style.textDecoration = "none";
+                    }
+                }
+
+                el.style.backgroundColor = backgroundColor;
+                el.style.borderColor = borderColor;
+                el.style.color = textColor;
+                el.style.setProperty("--calendar-stripe-color", calendarColor);
+            });
+        }
+    }, [getCalendarColor, tempEventId, selectedEvent]);
+
+    useEffect(() => {
+        const fetchAllEvents = async () => {
+            if (!calendars.length || !currentUser?.id) return;
+
+            const fetchedEvents = calendars
+                .filter(
+                    (calendar) =>
+                        selectedCalendarIds.includes(calendar.id) &&
+                        (calendar.creationByUserId === currentUser.id ||
+                            calendar.participants.some((p) => p.userId === currentUser.id))
+                )
+                .flatMap((calendar) => {
+                    const calendarColor = calendarColors[calendar.id] || DEFAULT_CALENDAR_COLOR;
+                    return calendar.events.map((event) => {
+                        const currentUserParticipant = event.participants?.find((p) => p.userId === currentUser?.id);
+                        const attendanceStatus = currentUserParticipant?.attendanceStatus as "yes" | "no" | "maybe" | undefined;
+                        const eventColor = currentUserParticipant?.color || calendarColor;
+
+                        let backgroundColor = "#ffffff";
+                        let borderColor = eventColor;
+                        let textColor = eventColor;
+
+                        if (calendar.type === "holidays" || calendar.type === "birthdays") {
+                            backgroundColor = eventColor;
+                            textColor = "#ffffff";
+                            borderColor = eventColor;
+                        } else {
+                            switch (attendanceStatus) {
+                                case "yes":
+                                case "maybe":
+                                    backgroundColor = eventColor;
+                                    textColor = "#ffffff";
+                                    borderColor = eventColor;
+                                    break;
+                                case "no":
+                                    backgroundColor = "#ffffff";
+                                    textColor = eventColor;
+                                    borderColor = eventColor;
+                                    break;
+                            }
+                        }
+
+                        return {
+                            id: event.id.toString(),
+                            title: event.title,
+                            start: new Date(event.startAt),
+                            end: new Date(event.endAt),
+                            allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
+                            backgroundColor,
+                            borderColor,
+                            textColor,
+                            extendedProps: {
+                                attendanceStatus,
+                                calendarId: calendar.id,
+                                color: eventColor === calendarColor ? undefined : eventColor,
+                                calendarColor,
+                                description: event.description,
+                                type: event.type,
+                                calendarType: calendar.type,
+                            },
+                        } as EventType;
+                    });
+                });
+
+            setAllEvents(fetchedEvents);
+
+            const calendarApi = calendarRef.current?.getApi();
+            if (calendarApi) {
+                const { activeStart, activeEnd } = calendarApi.view;
+                const initialVisibleEvents = filterEventsByDateRange(fetchedEvents, activeStart, activeEnd);
+                setVisibleEvents(initialVisibleEvents);
+            }
+        };
+
+        fetchAllEvents();
+    }, [calendars, selectedCalendarIds, currentUser?.id]);
+
+    useEffect(() => {
+        updateEventStyles();
+    }, [calendars, updateEventStyles]);
+
+    const handleDatesSet = (arg: { start: Date; end: Date; view: any }) => {
+        const visibleEvents = filterEventsByDateRange(allEvents, arg.start, arg.end);
+        setVisibleEvents(visibleEvents);
+
+        let formattedTitle = "";
+        const middleTime = arg.start.getTime() + (arg.end.getTime() - arg.start.getTime()) / 2;
+        const middleDate = new Date(middleTime);
+
+        if (arg.view.type === "timeGridWeek" || arg.view.type === "dayGridMonth") {
+            formattedTitle = format(middleDate, "MMMM yyyy");
+        } else if (arg.view.type === "timeGridDay") {
+            formattedTitle = format(middleDate, "MMMM d, yyyy");
+        }
+
+        setCurrentTitle(formattedTitle);
+        if (onTitleChange) onTitleChange(formattedTitle);
+
+        if (arg.view.type === "dayGridMonth") {
+            setDayHeaderFormat({ weekday: "short" });
+        } else {
+            setDayHeaderFormat({ weekday: "short", day: "numeric" });
+        }
+
+        if (arg.view.type === "timeGridWeek" && currentView !== "timeGridWeek") {
+            setPressedToggles(new Set());
+        }
+        if (arg.view.type === "timeGridWeek" || arg.view.type === "timeGridDay") {
+            handleScrollToTime();
+        }
+        setCurrentView(arg.view.type);
+        if (onViewChange) onViewChange(arg.view.type);
+    };
 
     useEffect(() => {
         if (selectedDate1 && calendarRef.current) {
             const calendarApi = calendarRef.current.getApi();
             const currentStart = calendarApi.view.activeStart;
             const currentEnd = calendarApi.view.activeEnd;
-
             if (selectedDate1 < currentStart || selectedDate1 > currentEnd) {
                 calendarApi.gotoDate(selectedDate1);
             }
-
         }
     }, [selectedDate1]);
 
@@ -169,33 +400,10 @@ export default function CustomCalendar({
 
     useEffect(() => {
         if (onEventsChange) {
-            onEventsChange(events);
+            onEventsChange(visibleEvents);
         }
-    }, [events, onEventsChange]);
+    }, [visibleEvents, onEventsChange]);
 
-    const getCalendarColor = (calendarId: number | undefined): string => {
-        if (!currentUser) {
-            return DEFAULT_CALENDAR_COLOR;
-        }
-        const mainCalendar = calendars.find((cal) => cal.type === "main" && cal.participants.some((p) => p.userId === currentUser?.id));
-        if (!calendarId || !currentUser?.id) {
-            if (mainCalendar) {
-                const participant = mainCalendar.participants.find((p) => p.userId === currentUser.id);
-                return participant?.color || DEFAULT_CALENDAR_COLOR;
-            }
-            return DEFAULT_CALENDAR_COLOR;
-        }
-        const reduxCalendar = calendars.find((cal) => cal.id === calendarId);
-        if (!reduxCalendar || !reduxCalendar.participants) {
-            if (mainCalendar) {
-                const participant = mainCalendar.participants.find((p) => p.userId === currentUser.id);
-                return participant?.color || DEFAULT_CALENDAR_COLOR;
-            }
-            return DEFAULT_CALENDAR_COLOR;
-        }
-        const participant = reduxCalendar.participants.find((p) => p.userId === currentUser.id);
-        return participant?.color || DEFAULT_CALENDAR_COLOR;
-    };
 
     const handleAttendanceChange = async (userId: number, status: "yes" | "no" | "maybe" | undefined) => {
         if (selectedEvent) {
@@ -225,13 +433,40 @@ export default function CustomCalendar({
             }
 
             if (result.success) {
-                const currentEvent = events.find(event => event.id === selectedEvent.id);
+                const currentEvent = allEvents.find(event => event.id === selectedEvent.id);
                 if (!currentEvent) return;
+
+                let backgroundColor = "#ffffff";
+                let textColor = eventColor;
+                let borderColor = eventColor;
+                let backgroundImage = "none";
+                let textDecoration = "none";
+
+                if (status === "yes") {
+                    backgroundColor = eventColor;
+                    textColor = "#ffffff";
+                    borderColor = eventColor;
+                    backgroundImage = "none";
+                    textDecoration = "none";
+                } else if (status === "maybe") {
+                    backgroundColor = eventColor;
+                    textColor = "#ffffff";
+                    borderColor = eventColor;
+                    backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                    textDecoration = "none";
+                } else if (status === "no") {
+                    backgroundColor = "#ffffff";
+                    textColor = eventColor;
+                    borderColor = eventColor;
+                    backgroundImage = "none";
+                    textDecoration = "line-through";
+                }
 
                 const updatedEvent: EventType = {
                     ...currentEvent,
-                    backgroundColor: status === "yes" || status === "maybe" ? eventColor : "#ffffff",
-                    textColor: status === "yes" || status === "maybe" ? "#ffffff" : eventColor,
+                    backgroundColor,
+                    borderColor,
+                    textColor,
                     extendedProps: {
                         ...currentEvent.extendedProps,
                         attendanceStatus: status,
@@ -239,11 +474,8 @@ export default function CustomCalendar({
                     },
                 };
 
-                setEvents(prevEvents =>
-                    prevEvents.map(event =>
-                        event.id === selectedEvent.id ? updatedEvent : event
-                    )
-                );
+                setAllEvents(prev => prev.map(event => event.id === selectedEvent.id ? updatedEvent : event));
+                setVisibleEvents(prev => prev.map(event => event.id === selectedEvent.id ? updatedEvent : event));
 
                 const calendarApi = calendarRef.current?.getApi();
                 if (calendarApi) {
@@ -261,8 +493,16 @@ export default function CustomCalendar({
                             textColor: updatedEvent.textColor,
                             extendedProps: updatedEvent.extendedProps,
                         });
+
+                        const eventEl = document.querySelector(`.fc-event[data-event-id="${updatedEvent.id}"]`) as HTMLElement;
+                        if (eventEl) {
+                            eventEl.style.backgroundImage = backgroundImage;
+                            eventEl.style.textDecoration = textDecoration;
+                        }
                     }
                 }
+
+                updateEventStyles();
             } else {
                 setSelectedEvent(selectedEvent);
                 showErrorToasts(ToastStatusMessages.EVENTS.UPDATE_FAILED);
@@ -270,178 +510,77 @@ export default function CustomCalendar({
         }
     };
 
-    const fetchEventsWithAttendance = async () => {
-        if (!calendars.length || !currentUser?.id) return;
+    const [customEventColors, setCustomEventColors] = useState<Record<string, string>>({});
 
-        const allEvents = calendars
-            .filter(
-                (calendar) =>
-                    selectedCalendarIds.includes(calendar.id) &&
-                    (calendar.creationByUserId === currentUser.id ||
-                        calendar.participants.some((p) => p.userId === currentUser.id))
-            )
-            .flatMap((calendar) =>
-                calendar.events.map((event) => {
-                    const calendarColor = getCalendarColor(calendar.id);
-
-                    const currentUserParticipant = event.participants?.find(
-                        (p) => p.userId === currentUser?.id
-                    );
-                    const attendanceStatus = currentUserParticipant?.attendanceStatus as
-                        | "yes"
-                        | "no"
-                        | "maybe"
-                        | undefined;
-                    const eventColor = currentUserParticipant?.color || calendarColor;
-
-                    let backgroundColor = "#ffffff";
-                    let borderColor = eventColor;
-                    let textColor = eventColor;
-
-                    if (calendar.type === "holidays" || calendar.type === "birthdays") {
-                        backgroundColor = eventColor;
-                        textColor = "#ffffff";
-                        borderColor = eventColor;
-                    } else {
-                        switch (attendanceStatus) {
-                            case "yes":
-                                backgroundColor = eventColor;
-                                textColor = "#ffffff";
-                                borderColor = eventColor;
-                                break;
-                            case "no":
-                                backgroundColor = "#ffffff";
-                                textColor = eventColor;
-                                borderColor = eventColor;
-                                break;
-                            case "maybe":
-                                backgroundColor = eventColor;
-                                textColor = "#ffffff";
-                                borderColor = eventColor;
-                                break;
-                        }
-                    }
-
-                    return {
-                        id: event.id.toString(),
-                        title: event.title,
-                        start: new Date(event.startAt),
-                        end: new Date(event.endAt),
-                        allDay: event.startAt.endsWith("00:00:00") && event.endAt.endsWith("23:59:59"),
-                        backgroundColor,
-                        borderColor,
-                        textColor,
-                        extendedProps: {
-                            attendanceStatus,
-                            calendarId: calendar.id,
-                            color: currentUserParticipant?.color,
-                            calendarColor,
-                            description: event.description,
-                            type: event.type,
-                            calendarType: calendar.type,
-                        },
-                    } as EventType;
-                })
-            );
-
-        setEvents(allEvents);
-
-        const calendarApi = calendarRef.current?.getApi();
-        if (calendarApi) {
-            calendarApi.getEvents().forEach((event) => event.remove());
-            allEvents.forEach((event) => {
-                calendarApi.addEvent({
-                    id: event.id,
-                    title: event.title,
-                    start: event.start,
-                    end: event.end,
-                    allDay: event.allDay,
-                    backgroundColor: event.backgroundColor,
-                    borderColor: event.borderColor,
-                    textColor: event.textColor,
-                    extendedProps: event.extendedProps,
-                });
-            });
-        }
-    };
-
-    useEffect(() => {
-        const updateEvents = async () => {
-            await fetchEventsWithAttendance();
-
-            const calendarApi = calendarRef.current?.getApi();
-            if (calendarApi) {
-                calendarApi.getEvents().forEach(event => {
-                    const eventId = event.id;
-                    const eventEl = document.querySelector(`.fc-event[data-event-id="${eventId}"]`) as HTMLElement;
-                    if (eventEl) {
-                        const calendarId = event.extendedProps?.calendarId;
-                        const newCalendarColor = getCalendarColor(calendarId);
-                        eventEl.style.setProperty("--calendar-stripe-color", newCalendarColor);
-
-                        if (event.extendedProps?.color && event.extendedProps.color !== newCalendarColor) {
-                            eventEl.classList.add("event-with-stripe");
-                        } else {
-                            eventEl.classList.remove("event-with-stripe");
-                        }
-                    }
-                });
-            }
-        };
-
-        updateEvents();
-    }, [calendars, selectedCalendarIds, currentUser?.id]);
-
-    const handleColorChange = (eventId: string, newColor: string) => {
-        const currentEvent = events.find(event => event.id === eventId);
+    const handleColorChange = async (eventId: string, newColor: string) => {
+        const currentEvent = allEvents.find((event) => event.id === eventId);
         if (!currentEvent) return;
 
         const calendarColor = getCalendarColor(currentEvent.extendedProps?.calendarId);
         const attendanceStatus = currentEvent.extendedProps?.attendanceStatus;
 
+        let backgroundColor = "#ffffff";
+        let textColor = newColor;
+        let borderColor = newColor;
+        let backgroundImage = "none";
+        let textDecoration = "none";
+
+        if (attendanceStatus === "yes") {
+            backgroundColor = newColor;
+            textColor = "#ffffff";
+            borderColor = newColor;
+            backgroundImage = "none";
+            textDecoration = "none";
+        } else if (attendanceStatus === "maybe") {
+            backgroundColor = newColor;
+            textColor = "#ffffff";
+            borderColor = newColor;
+            backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+            textDecoration = "none";
+        } else if (attendanceStatus === "no") {
+            backgroundColor = "#ffffff";
+            textColor = newColor;
+            borderColor = newColor;
+            backgroundImage = "none";
+            textDecoration = "line-through";
+        }
+
         const updatedEvent: EventType = {
             ...currentEvent,
-            backgroundColor: attendanceStatus === "yes" || attendanceStatus === "maybe" ? newColor : "#ffffff",
-            borderColor: newColor,
-            textColor: attendanceStatus === "yes" || attendanceStatus === "maybe" ? "#ffffff" : newColor,
+            backgroundColor,
+            borderColor,
+            textColor,
             extendedProps: {
                 ...currentEvent.extendedProps,
                 color: newColor,
                 calendarColor,
-                calendarId: currentEvent.extendedProps?.calendarId || 0,
             },
         };
 
-        setEvents(prevEvents =>
-            prevEvents.map(event =>
-                event.id === eventId ? updatedEvent : event
-            )
-        );
+        setAllEvents((prevEvents) => prevEvents.map((event) => (event.id === eventId ? updatedEvent : event)));
+        setVisibleEvents((prevEvents) => prevEvents.map((event) => (event.id === eventId ? updatedEvent : event)));
+        setCustomEventColors((prev) => ({ ...prev, [eventId]: newColor }));
+
+        const result = await updateEventColorApi(dispatch, parseInt(eventId), newColor);
+        if (!result.success) {
+            showErrorToasts(ToastStatusMessages.EVENTS.UPDATE_FAILED);
+            return;
+        }
 
         const calendarApi = calendarRef.current?.getApi();
         if (calendarApi) {
             const event = calendarApi.getEventById(eventId);
             if (event) {
-                event.remove();
-                calendarApi.addEvent({
-                    id: updatedEvent.id,
-                    title: updatedEvent.title,
-                    start: updatedEvent.start,
-                    end: updatedEvent.end,
-                    allDay: updatedEvent.allDay,
-                    backgroundColor: updatedEvent.backgroundColor,
-                    borderColor: updatedEvent.borderColor,
-                    textColor: updatedEvent.textColor,
-                    extendedProps: updatedEvent.extendedProps,
-                });
+                event.setProp("backgroundColor", updatedEvent.backgroundColor);
+                event.setProp("borderColor", updatedEvent.borderColor);
+                event.setProp("textColor", updatedEvent.textColor);
+                event.setExtendedProp("color", newColor);
+                event.setExtendedProp("calendarColor", calendarColor);
 
                 const eventEl = document.querySelector(`.fc-event[data-event-id="${eventId}"]`) as HTMLElement;
                 if (eventEl) {
-                    if (newColor && newColor !== calendarColor) {
-                        eventEl.classList.add("event-with-stripe");
-                    } else {
-                        eventEl.classList.remove("event-with-stripe");
-                    }
+                    eventEl.style.backgroundImage = backgroundImage;
+                    eventEl.style.textDecoration = textDecoration;
                 }
             }
         }
@@ -455,7 +594,71 @@ export default function CustomCalendar({
                 ),
             });
         }
+
+        updateEventStyles();
     };
+
+    useEffect(() => {
+        if (!calendars.length || !currentUser?.id) return;
+
+        setAllEvents((prevEvents) =>
+            prevEvents.map((event) => {
+                const calendarColor = getCalendarColor(event.extendedProps?.calendarId);
+                const eventColor = customEventColors[event.id] ?? event.extendedProps?.color ?? calendarColor;
+                const attendanceStatus = event.extendedProps?.attendanceStatus;
+
+
+                return {
+                    ...event,
+                    backgroundColor:
+                        attendanceStatus === "yes" || attendanceStatus === "maybe"
+                            ? eventColor
+                            : "#ffffff",
+                    borderColor: eventColor,
+                    textColor:
+                        attendanceStatus === "yes" || attendanceStatus === "maybe"
+                            ? "#ffffff"
+                            : eventColor,
+                    extendedProps: {
+                        ...event.extendedProps,
+                        calendarId: event.extendedProps?.calendarId ?? 0,
+                        calendarColor,
+                        color: customEventColors[event.id] ?? event.extendedProps?.color,
+                    },
+                };
+            })
+        );
+
+        setVisibleEvents((prevEvents) =>
+            prevEvents.map((event) => {
+                const calendarColor = getCalendarColor(event.extendedProps?.calendarId);
+                const eventColor = customEventColors[event.id] ?? event.extendedProps?.color ?? calendarColor;
+                const attendanceStatus = event.extendedProps?.attendanceStatus;
+
+
+                return {
+                    ...event,
+                    backgroundColor:
+                        attendanceStatus === "yes" || attendanceStatus === "maybe"
+                            ? eventColor
+                            : "#ffffff",
+                    borderColor: eventColor,
+                    textColor:
+                        attendanceStatus === "yes" || attendanceStatus === "maybe"
+                            ? "#ffffff"
+                            : eventColor,
+                    extendedProps: {
+                        ...event.extendedProps,
+                        calendarId: event.extendedProps?.calendarId ?? 0,
+                        calendarColor,
+                        color: customEventColors[event.id] ?? event.extendedProps?.color,
+                    },
+                };
+            })
+        );
+
+        updateEventStyles();
+    }, [calendarColors, getCalendarColor, currentUser?.id, updateEventStyles, customEventColors]);
 
     const handleTogglePress = (date: Date) => {
         const dateKey = date.toISOString();
@@ -467,12 +670,11 @@ export default function CustomCalendar({
 
     const handleAddEvent = (title: string) => {
         if (title.trim() && selectedDate && tempEventId) {
-            const event = events.find((e) => e.id === tempEventId);
+            const event = allEvents.find((e) => e.id === tempEventId);
             if (event) {
                 const updatedEvent = { ...event, title };
-                setEvents((prevEvents) =>
-                    prevEvents.map((e) => (e.id === tempEventId ? updatedEvent : e))
-                );
+                setAllEvents((prevEvents) => prevEvents.map((e) => (e.id === tempEventId ? updatedEvent : e)));
+                setVisibleEvents((prevEvents) => prevEvents.map((e) => (e.id === tempEventId ? updatedEvent : e)));
             }
             setTempEventId(null);
         }
@@ -484,7 +686,8 @@ export default function CustomCalendar({
 
     const handleClose = () => {
         if (tempEventId) {
-            setEvents((prevEvents) => prevEvents.filter((event) => event.id !== tempEventId));
+            setAllEvents((prevEvents) => prevEvents.filter((event) => event.id !== tempEventId));
+            setVisibleEvents((prevEvents) => prevEvents.filter((event) => event.id !== tempEventId));
         }
         setSelectedDate(null);
         setEndDate(null);
@@ -541,7 +744,8 @@ export default function CustomCalendar({
             const result = await deleteEvent(dispatch, eventId);
 
             if (result.success) {
-                setEvents((prevEvents) => prevEvents.filter((e) => e.id !== selectedEvent.id));
+                setAllEvents((prevEvents) => prevEvents.filter((e) => e.id !== selectedEvent.id));
+                setVisibleEvents((prevEvents) => prevEvents.filter((e) => e.id !== selectedEvent.id));
                 showSuccessToast(ToastStatusMessages.EVENTS.DELETE_SUCCESS);
             } else {
                 showErrorToasts(result.errors || ToastStatusMessages.EVENTS.DELETE_FAILED);
@@ -559,7 +763,7 @@ export default function CustomCalendar({
             return;
         }
 
-        const currentEvent = events.find((e) => e.id === info.event.id);
+        const currentEvent = allEvents.find((e) => e.id === info.event.id);
         const wasAllDay = currentEvent?.allDay || false;
 
         const startAt = isAllDay
@@ -593,25 +797,22 @@ export default function CustomCalendar({
             }
         }
 
-        const payload = {
-            startAt,
-            endAt,
-        };
-
+        const payload = { startAt, endAt };
         const result = await updateEventDate(dispatch, eventId, payload);
 
         if (result.success) {
-            setEvents((prevEvents) =>
-                prevEvents.map((event) =>
-                    event.id === info.event.id
-                        ? {
-                            ...event,
-                            start: info.event.start,
-                            end: info.event.end || new Date(endAt),
-                            allDay: isAllDay,
-                        }
-                        : event
-                )
+            const updatedEvent = {
+                ...currentEvent,
+                start: info.event.start,
+                end: info.event.end || new Date(endAt),
+                allDay: isAllDay,
+            } as EventType;
+
+            setAllEvents((prevEvents) =>
+                prevEvents.map((event) => (event.id === info.event.id ? updatedEvent : event))
+            );
+            setVisibleEvents((prevEvents) =>
+                prevEvents.map((event) => (event.id === info.event.id ? updatedEvent : event))
             );
             showSuccessToast(ToastStatusMessages.EVENTS.UPDATE_SUCCESS);
         } else {
@@ -685,11 +886,11 @@ export default function CustomCalendar({
         }
     }, []);
 
-    const applyMirrorStyles = (mainCalendarColor: string) => {
+    const applyMirrorStyles = (color: string) => {
         const mirrorEvent = document.querySelector(".fc-event-mirror") as HTMLElement;
         if (mirrorEvent) {
-            mirrorEvent.style.backgroundColor = mainCalendarColor;
-            mirrorEvent.style.borderColor = mainCalendarColor;
+            mirrorEvent.style.backgroundColor = color;
+            mirrorEvent.style.borderColor = color;
             mirrorEvent.style.color = "#ffffff";
 
             const textElements = mirrorEvent.querySelectorAll(".fc-event-title, .fc-event-time");
@@ -709,7 +910,7 @@ export default function CustomCalendar({
     };
 
     const getEventColor = (eventId: string) => {
-        const event = events.find((e) => e.id === eventId);
+        const event = allEvents.find((e) => e.id === eventId);
         if (!event) {
             return DEFAULT_CALENDAR_COLOR;
         }
@@ -718,8 +919,7 @@ export default function CustomCalendar({
             return eventColor;
         }
         const calendarId = event.extendedProps?.calendarId;
-        const calendarColor = getCalendarColor(calendarId);
-        return calendarColor;
+        return getCalendarColor(calendarId);
     };
 
     return (
@@ -733,7 +933,7 @@ export default function CustomCalendar({
                     selectable={true}
                     selectMirror={true}
                     nowIndicator={true}
-                    events={events}
+                    events={visibleEvents}
                     eventResizableFromStart={true}
                     eventDurationEditable={true}
                     eventDragStart={(info) => {
@@ -770,42 +970,87 @@ export default function CustomCalendar({
                         const el = info.el as HTMLElement;
                         el.setAttribute("data-event-id", info.event.id);
                         const attendanceStatus = info.event.extendedProps?.attendanceStatus;
-                        const calendarColor = info.event.extendedProps?.calendarColor || "#039BE5";
+                        const calendarId = info.event.extendedProps?.calendarId;
+                        const calendarColor = getCalendarColor(calendarId) || DEFAULT_CALENDAR_COLOR;
                         const eventColor = info.event.extendedProps?.color || calendarColor;
                         const calendarType = info.event.extendedProps?.calendarType;
 
-                        if (eventColor !== calendarColor) {
+                        if (eventColor && eventColor !== calendarColor) {
                             el.classList.add("event-with-stripe");
+                        } else {
+                            el.classList.remove("event-with-stripe");
                         }
+
+                        let backgroundColor = "#ffffff";
+                        let textColor = eventColor;
+                        let borderColor = eventColor;
+                        let backgroundImage = "none";
+                        let textDecoration = "none";
 
                         if (calendarType === "holidays" || calendarType === "birthdays") {
-                            el.style.backgroundImage = "none";
-                            el.style.backgroundColor = eventColor;
-                            el.style.borderColor = eventColor;
-                            el.style.color = "#ffffff";
+                            backgroundColor = eventColor;
+                            textColor = "#ffffff";
+                            borderColor = eventColor;
+                            backgroundImage = "none";
+                            textDecoration = "none";
+                        } else if (attendanceStatus === "yes") {
+                            backgroundColor = eventColor;
+                            textColor = "#ffffff";
+                            borderColor = eventColor;
+                            backgroundImage = "none";
+                            textDecoration = "none";
                         } else if (attendanceStatus === "maybe") {
-                            el.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
-                            el.style.backgroundColor = eventColor;
-                        } else {
-                            el.style.backgroundImage = "none";
-                            el.style.backgroundColor = attendanceStatus === "yes" ? eventColor : "#ffffff";
+                            backgroundColor = eventColor;
+                            textColor = "#ffffff";
+                            borderColor = eventColor;
+                            backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                            textDecoration = "none";
+                        } else if (attendanceStatus === "no") {
+                            backgroundColor = "#ffffff";
+                            textColor = eventColor;
+                            borderColor = eventColor;
+                            backgroundImage = "none";
+                            textDecoration = "line-through";
                         }
 
-                        if (info.event.id === tempEventId) {
-                            el.style.backgroundColor = calendarColor;
-                            el.style.borderColor = calendarColor;
-                            el.style.color = "#ffffff";
+                        if (info.event.id === tempEventId || (selectedEvent && info.event.id === selectedEvent.id)) {
+                            if (attendanceStatus === "yes") {
+                                backgroundColor = eventColor;
+                                textColor = "#ffffff";
+                                borderColor = eventColor;
+                                backgroundImage = "none";
+                                textDecoration = "none";
+                            } else if (attendanceStatus === "maybe") {
+                                backgroundColor = eventColor;
+                                textColor = "#ffffff";
+                                borderColor = eventColor;
+                                backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px)`;
+                                textDecoration = "none";
+                            } else if (attendanceStatus === "no") {
+                                backgroundColor = "#ffffff";
+                                textColor = eventColor;
+                                borderColor = eventColor;
+                                backgroundImage = "none";
+                                textDecoration = "line-through";
+                            } else if (info.event.id === tempEventId) {
+                                backgroundColor = calendarColor;
+                                borderColor = calendarColor;
+                                textColor = "#ffffff";
+                                backgroundImage = "none";
+                                textDecoration = "none";
+                            }
                         }
 
+                        el.style.backgroundColor = backgroundColor;
+                        el.style.borderColor = borderColor;
+                        el.style.color = textColor;
+                        el.style.backgroundImage = backgroundImage;
+                        el.style.textDecoration = textDecoration;
                         el.style.setProperty("--calendar-stripe-color", calendarColor);
                     }}
                     headerToolbar={false}
                     height="100%"
-                    slotLabelFormat={{
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                    }}
+                    slotLabelFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
                     firstDay={1}
                     dayHeaderContent={(arg) => {
                         const dateKey = arg.date.toISOString();
@@ -833,38 +1078,7 @@ export default function CustomCalendar({
                         );
                     }}
                     dayHeaderFormat={dayHeaderFormat}
-                    datesSet={(arg) => {
-                        let formattedTitle = "";
-                        const startDate = arg.start;
-                        const endDate = arg.end;
-                        const timeDiff = endDate.getTime() - startDate.getTime();
-                        const middleTime = startDate.getTime() + Math.floor(timeDiff / 2);
-                        const middleDate = new Date(middleTime);
-
-                        if (arg.view.type === "timeGridWeek" || arg.view.type === "dayGridMonth") {
-                            formattedTitle = format(middleDate, "MMMM yyyy");
-                        } else if (arg.view.type === "timeGridDay") {
-                            formattedTitle = format(middleDate, "MMMM d, yyyy");
-                        }
-
-                        setCurrentTitle(formattedTitle);
-                        if (onTitleChange) onTitleChange(formattedTitle);
-
-                        if (arg.view.type === "dayGridMonth") {
-                            setDayHeaderFormat({ weekday: "short" });
-                        } else {
-                            setDayHeaderFormat({ weekday: "short", day: "numeric" });
-                        }
-
-                        if (arg.view.type === "timeGridWeek" && currentView !== "timeGridWeek") {
-                            setPressedToggles(new Set());
-                        }
-                        if (arg.view.type === "timeGridWeek" || arg.view.type === "timeGridDay") {
-                            handleScrollToTime();
-                        }
-                        setCurrentView(arg.view.type);
-                        if (onViewChange) onViewChange(arg.view.type);
-                    }}
+                    datesSet={handleDatesSet}
                     select={(info) => {
                         const newEventId = Date.now().toString();
                         let eventEnd = info.end;
@@ -897,11 +1111,12 @@ export default function CustomCalendar({
                                 attendanceStatus: "yes" as const,
                                 calendarId: defaultCalendarId,
                                 calendarColor: mainCalendarColor,
-                                color: undefined,
+                                color: mainCalendarColor,
                             },
                         };
 
-                        setEvents((prevEvents) => [...prevEvents, newEvent]);
+                        setAllEvents((prevEvents) => [...prevEvents, newEvent]);
+                        setVisibleEvents((prevEvents) => [...prevEvents, newEvent]);
                         setSelectedDate(info.start.toISOString());
                         setEndDate(eventEnd.toISOString());
                         setTempEventId(newEventId);
@@ -962,13 +1177,15 @@ export default function CustomCalendar({
                             setTempEventId(null);
                             setIsPositionReady(false);
                             setClickPosition(undefined);
+
+                            updateEventStyles();
                         }
                     }}
                     eventContent={(arg) => {
                         const title = arg.event.title || "New Event";
                         const isAllDay = arg.event.allDay;
                         const attendanceStatus = arg.event.extendedProps?.attendanceStatus;
-                        const calendarColor = getCalendarColor(arg.event.extendedProps?.calendarId);
+                        const calendarColor = arg.event.extendedProps?.calendarColor || DEFAULT_CALENDAR_COLOR;
                         const eventColor = arg.event.extendedProps?.color || calendarColor;
                         const eventType = arg.event.extendedProps?.type;
                         const calendarType = arg.event.extendedProps?.calendarType;
@@ -1059,7 +1276,6 @@ export default function CustomCalendar({
                                         {title}
                                     </div>
                                 </div>
-
                                 {!isShortEvent && (
                                     <div className="ml-0.5 event-time truncate" style={textStyle}>
                                         {startTime} - {endTime}

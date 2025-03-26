@@ -152,7 +152,6 @@ export default function CustomToolbarFullCalendar({
                     newDate = sub(currentDate, { weeks: 1 });
             }
             setCurrentDate(newDate);
-            console.log("Prev date:", newDate);
             onDateChange?.(newDate);
         }
     };
@@ -175,7 +174,6 @@ export default function CustomToolbarFullCalendar({
                     newDate = add(currentDate, { weeks: 1 });
             }
             setCurrentDate(newDate);
-            console.log("Next date:", newDate);
             onDateChange?.(newDate);
         }
     };
@@ -185,7 +183,6 @@ export default function CustomToolbarFullCalendar({
             calendarApi.today();
             const newDate = new Date();
             setCurrentDate(newDate);
-            console.log("Today date:", newDate);
             onDateChange?.(newDate);
         }
     };
