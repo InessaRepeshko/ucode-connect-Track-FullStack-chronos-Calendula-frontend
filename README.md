@@ -38,9 +38,9 @@
 
 
 # 🗓️ Overview
-Calendula is a calendar project inspired by Google Calendar. It is built using React and Tailwind and features a highly responsive and intuitive interface.
+Calendula is an enterprise platform that transforms time management with flexible calendars, interactive events, and team sync.
 
-The Calendula project is designed for convenient task and event planning. It combines a minimalist design with robust functionality, allowing users to easily manage their time while also supporting customizable color themes.
+Organise your day, share ideas, and streamline your workflow with easy search, notifications, and a personalised design.
 
 
 
@@ -63,9 +63,9 @@ The Calendula project is designed for convenient task and event planning. It com
 
 
 # 🌼 About "Calendula" calendar app
-Calendula is an enterprise platform that transforms time management with flexible calendars, interactive events, and team sync.
+Calendula is a calendar project inspired by Google Calendar. It is built using React and Tailwind and features a highly responsive and intuitive interface.
 
-Organise your day, share ideas, and streamline your workflow with easy search, notifications, and a personalised design.
+The Calendula project is designed for convenient task and event planning. It combines a minimalist design with robust functionality, allowing users to easily manage their time while also supporting customizable color themes.
 
 Here is a [link](https://docs.google.com/presentation/d/1UFsV7MbyVHJA5UCWVKEkgtV1f3Buq-kT/edit?usp=sharing) to the presentation file.</p>
 
