@@ -6,7 +6,7 @@
    </p>
 
    <img src="public/logo_favicon.png" width="200" />
-   <h1 align="center">Univent</h1>
+   <h1 align="center">Calendula</h1>
 
 <p align="center">
 	<img src="https://img.shields.io/badge/TypeScript-3178C6.svg?style=flat&logo=TypeScript&logoColor=white" alt="TypeScript">
