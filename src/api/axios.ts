@@ -1,9 +1,10 @@
 import axios, { AxiosError } from "axios";
 import store from "@/components/redux/store";
 import { logout } from "@/components/redux/reducers/authReducer";
+import { env } from "@/utils/env";
 
 const api = axios.create({
-    baseURL: "http://localhost:8080/api",
+    baseURL: env.API_BASE_URL,
 });
 
 api.interceptors.response.use(
