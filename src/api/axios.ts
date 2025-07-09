@@ -3,8 +3,16 @@ import store from "@/components/redux/store";
 import { logout } from "@/components/redux/reducers/authReducer";
 import { env } from "@/utils/env";
 
+// Define the environment
+const isProduction = import.meta.env.PROD;
+
+// Configure the API URL based on the environment
+const BASE_URL = isProduction 
+    ? '/api' // For production, use relative path
+    : `${import.meta.env.VITE_API_BASE_URL}/api`; // For development
+    
 const api = axios.create({
-    baseURL: env.API_BASE_URL,
+    baseURL: BASE_URL,
 });
 
 api.interceptors.response.use(
