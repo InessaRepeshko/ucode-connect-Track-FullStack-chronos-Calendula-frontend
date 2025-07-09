@@ -273,3 +273,4 @@ Calendula is a comprehensive calendar management application that provides the f
 ---
 
 © Inessa Repeshko. 2025
+
