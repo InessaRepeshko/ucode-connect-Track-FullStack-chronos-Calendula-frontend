@@ -86,6 +86,8 @@ export function NavUser({
     }
   };
 
+  const profilePictureUrl = import.meta.env.VITE_API_BASE_URL + "/profile-pictures/" + user.profilePicture;
+
   return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -97,7 +99,7 @@ export function NavUser({
               >
                 <Avatar className="h-10 w-10 rounded-lg">
                   <AvatarImage
-                      src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
+                      src={profilePictureUrl}
                       alt={user.fullName}
                   />
                 </Avatar>
@@ -117,7 +119,7 @@ export function NavUser({
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarImage
-                          src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
+                          src={profilePictureUrl}
                           alt={user.fullName}
                       />
                       <AvatarFallback className="rounded-lg">CN</AvatarFallback>

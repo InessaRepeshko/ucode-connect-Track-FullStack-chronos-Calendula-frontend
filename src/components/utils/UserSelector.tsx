@@ -98,7 +98,7 @@ const UserSelector = ({
                                         <div className="relative">
                                             <Avatar className="h-8 w-8 rounded-lg">
                                                 <AvatarImage
-                                                    src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
+                                                    src={`${import.meta.env.VITE_API_BASE_URL}/profile-pictures/${user.profilePicture}`}
                                                     alt={user.fullName}
                                                 />
                                             </Avatar>
@@ -131,7 +131,7 @@ const UserSelector = ({
                             <div className="relative">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage
-                                        src={`http://localhost:8080/profile-pictures/${user.profilePicture}`}
+                                        src={`${import.meta.env.VITE_API_BASE_URL}/profile-pictures/${user.profilePicture}`}
                                         alt={user.fullName}
                                     />
                                 </Avatar>

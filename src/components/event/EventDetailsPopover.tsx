@@ -370,7 +370,7 @@ export default function EventDetailsPopover({
                                 <div className="relative">
                                     <Avatar className="h-8 w-8 rounded-lg">
                                         <AvatarImage
-                                            src={`http://localhost:8080/profile-pictures/${event.creator.profilePicture}`}
+                                            src={`${import.meta.env.VITE_API_BASE_URL}/profile-pictures/${event.creator.profilePicture}`}
                                             alt={event.creator.fullName}
                                         />
                                     </Avatar>
@@ -406,7 +406,7 @@ export default function EventDetailsPopover({
                                             <div className="relative">
                                                 <Avatar className="h-8 w-8 rounded-lg">
                                                     <AvatarImage
-                                                        src={`http://localhost:8080/profile-pictures/${participant.profilePicture}`}
+                                                        src={`${import.meta.env.VITE_API_BASE_URL}/profile-pictures/${participant.profilePicture}`}
                                                         alt={participant.fullName}
                                                     />
                                                 </Avatar>
